@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა V1</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans Georgian",sans-serif;background:#0b1220;color:#e8eef7}
+header{background:linear-gradient(135deg,#101d35,#182b4b);padding:20px 24px;border-bottom:1px solid #2d4568}
+header h1{margin:0;font-size:26px}
+header p{margin:7px 0 0;color:#a9bad2}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;background:#0e1728;position:sticky;top:0;z-index:10}
+nav button,.btn{border:0;border-radius:8px;padding:10px 14px;background:#223552;color:#eaf2ff;cursor:pointer}
+nav button:hover,.btn:hover{background:#31527d}
+nav button.active{background:#3974bd}
+main{max-width:1400px;margin:auto;padding:22px}
+.page{display:none}.page.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:#111c2e;border:1px solid #263c5b;border-radius:12px;padding:18px}
+.stat strong{display:block;font-size:30px;margin-top:8px}
+.stat span{color:#9db0c8}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+input,select,textarea{width:100%;padding:10px;border-radius:7px;border:1px solid #38506f;background:#0b1525;color:#edf4ff}
+textarea{min-height:100px;resize:vertical}
+label{display:block;color:#aebed3;font-size:13px;margin:10px 0 5px}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.full{grid-column:1/-1}
+table{width:100%;border-collapse:collapse;background:#111c2e}
+th,td{padding:11px;border-bottom:1px solid #263c5b;text-align:left;vertical-align:top}
+th{color:#9fc2ea;background:#15243a}
+tr:hover td{background:#16253b}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;font-size:12px;background:#344968}
+.badge.yellow{background:#765f17}.badge.blue{background:#1d527d}.badge.green{background:#28603d}.badge.red{background:#713b43}.badge.gray{background:#4a4d55}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn.danger{background:#743943}.btn.ok{background:#2d6945}.btn.warn{background:#765f17}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal.show{display:flex}
+.modalbox{width:min(1000px,100%);max-height:92vh;overflow:auto;background:#101b2d;border:1px solid #395579;border-radius:14px;padding:22px}
+.modalhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.close{background:#67343d;border:0;color:white;border-radius:7px;padding:8px 12px;cursor:pointer}
+.sectiontitle{margin-top:25px;color:#9fc2ea;border-bottom:1px solid #2c4260;padding-bottom:8px}
+.empty{text-align:center;padding:35px;color:#8fa2bb}
+.notice{padding:12px;border-radius:8px;background:#172942;color:#bcd2ee;margin-bottom:14px}
+.small{font-size:12px;color:#90a5bf}
+.search{max-width:400px}.multiselect{min-height:120px}.hint{font-size:12px;color:#8fa8c5;margin-top:4px}
+.mobileField{max-width:760px;margin:auto}.cameraBox{border:2px dashed #395579;border-radius:14px;padding:16px;text-align:center;background:#0c1728}.photoPreview{width:180px;height:220px;object-fit:cover;border-radius:12px;border:1px solid #395579;display:none;margin:12px auto}.cameraBtn{font-size:18px;padding:14px 18px}.fieldStatus{padding:12px;border-radius:9px;margin-top:12px;display:none}.fieldStatus.ok{display:block;background:#173d29;color:#bde9cc}.fieldStatus.warn{display:block;background:#4b3c14;color:#f1dda0}.personThumb{width:48px;height:58px;object-fit:cover;border-radius:6px;border:1px solid #395579;vertical-align:middle}.personViewPhoto{max-width:280px;max-height:340px;object-fit:contain;border-radius:12px;border:1px solid #395579}.statusGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.miniCard{background:#0c1728;border:1px solid #29415f;border-radius:9px;padding:12px}.privacyNote{background:#3a2b12;color:#f1d99a;padding:12px;border-radius:9px;margin:10px 0}.resultBox{padding:12px;border-radius:9px;background:#152b43;border:1px solid #31527d;margin-top:10px}.dangerNote{background:#4a2027;color:#f4c3ca;padding:10px;border-radius:8px}.successNote{background:#173d29;color:#bde9cc;padding:10px;border-radius:8px}.mapBox{border:1px solid #395579;border-radius:10px;overflow:hidden;background:#0b1525}.mapBox iframe{width:100%;height:360px;border:0}.mediaPreviewGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.mediaCard{background:#0c1728;border:1px solid #29415f;border-radius:10px;padding:10px}.mediaCard img,.mediaCard video{width:100%;max-height:240px;object-fit:contain;border-radius:7px;background:#000}.gpsLine{display:flex;gap:8px;align-items:end}.gpsLine>div{flex:1}.treeBox{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}.treeNode{background:#162b45;border:1px solid #3b628d;border-radius:10px;padding:10px 14px;min-width:220px;text-align:center}.treeLine{width:2px;height:18px;background:#466b93}.treeChildren{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}.linkedId{font-family:monospace;color:#9fc2ea}.matchFound{background:#173d29;border:1px solid #39704d;padding:10px;border-radius:9px;margin-top:8px}.matchMissing{background:#4a2027;border:1px solid #7c4650;padding:10px;border-radius:9px;margin-top:8px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}main{padding:12px}nav{padding:8px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🛸 UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა</h1>
+  <p>სატესტო ვერსია V1 • მონაცემები ინახება ამ ბრაუზერში (LocalStorage)</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('dashboard',this)">📊 მთავარი</button>
+  <button onclick="showPage('cases',this)">🛸 შემთხვევები</button>
+  <button onclick="showPage('persons',this)">👤 პიროვნებები</button>
+  <button onclick="showPage('field',this)">📱 საველე რეჟიმი</button>
+  <button onclick="showPage('medical',this)">🩺 ჯანმრთელობა</button>
+  <button onclick="showPage('dna',this)">🧬 DNA / ნათესაობა</button>
+  <button onclick="showPage('genealogy',this)">🌳 გენეალოგია</button>
+  <button onclick="showPage('missing',this)">🚨 ძებნილი / დაკარგული</button>
+  <button onclick="showPage('phenomena',this)">👽 ფენომენები</button>
+  <button onclick="showPage('evidence',this)">📁 მასალები</button>
+  <button onclick="showPage('reports',this)">📋 ანგარიშები</button>
+  <button onclick="showPage('backup',this)">💾 Backup</button>
+  <button onclick="showPage('sync',this)">☁️ სინქრონიზაცია</button>
+</nav>
+
+<main>
+<section id="dashboard" class="page active">
+  <h2>მთავარი პანელი</h2>
+  <div class="grid">
+    <div class="card stat"><span>სულ შემთხვევები</span><strong id="statCases">0</strong></div>
+    <div class="card stat"><span>პიროვნებები</span><strong id="statPersons">0</strong></div>
+    <div class="card stat"><span>ფენომენები</span><strong id="statPhenomena">0</strong></div>
+    <div class="card stat"><span>მასალები</span><strong id="statEvidence">0</strong></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>კვლევის სტატუსები</h3>
+    <div id="statusStats"></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>ბოლო შემთხვევები</h3>
+    <div id="recentCases"></div>
+  </div>
+</section>
+
+<section id="cases" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🛸 შემთხვევები</h2>
+    <input id="caseSearch" class="search" placeholder="🔎 ძებნა..." oninput="renderCases()">
+    <select id="caseStatusFilter" onchange="renderCases()">
+      <option value="">ყველა სტატუსი</option>
+      <option>შესასწავლია</option><option>მიმდინარეობს კვლევა</option>
+      <option>ახსნილი</option><option>ვერ აიხსნა</option><option>არასაკმარისი ინფორმაცია</option>
+    </select>
+    <button class="btn ok" onclick="openCaseModal()">＋ ახალი შემთხვევა</button>
+  </div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr>
+    <th>№</th><th>თარიღი</th><th>დასახელება</th><th>ადგილი</th><th>ტიპი</th><th>სტატუსი</th><th>ქმედება</th>
+  </tr></thead><tbody id="casesBody"></tbody></table></div>
+</section>
+
+<section id="persons" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">👤 პიროვნებები</h2>
+    <input id="personSearch" class="search" placeholder="🔎 ძებნა..." oninput="renderPersons()">
+    <button class="btn ok" onclick="openPersonModal()">＋ პიროვნების დამატება</button>
+  </div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr>
+    <th>ფოტო</th><th>სახელი და გვარი</th><th>Personal ID</th><th>როლი</th><th>პიროვნების შეფასება</th><th>დაბადება / ასაკი</th><th>მისამართი</th><th>ქალაქი/ქვეყანა</th><th>დაკავშირებული შემთხვევები</th><th>⚠️ პოლიციის დამთხვევა</th><th>ქმედება</th>
+  </tr></thead><tbody id="personsBody"></tbody></table></div>
+</section>
+
+<section id="field" class="page">
+  <div class="mobileField">
+    <h2>📱 საველე რეჟიმი — პიროვნების სწრაფი რეგისტრაცია</h2>
+    <div class="notice">ტელეფონიდან გადაიღეთ პიროვნება, შეიყვანეთ სახელი, გვარი და Personal ID. თუ Personal ID უკვე არსებობს, ახალი დუბლიკატი არ შეიქმნება — ჩანაწერს განვაახლებთ/ფოტოს მივაბამთ არსებულ პიროვნებას.</div>
+    <div class="card">
+      <input type="hidden" id="fieldExistingId">
+      <div class="cameraBox">
+        <b>📷 პიროვნების ფოტო</b>
+        <img id="fieldPhotoPreview" class="photoPreview" alt="ფოტოს წინასწარი ნახვა">
+        <label class="btn ok cameraBtn" style="display:inline-block;margin-top:12px">📷 ფოტოს გადაღება / ატვირთვა
+          <input id="fieldPhotoInput" type="file" accept="image/*" capture="environment" onchange="handleFieldPhoto(event)" style="display:none">
+        </label>
+        <div id="fieldPhotoInfo" class="small" style="margin-top:8px">ფოტო ჯერ არ არის არჩეული</div>
+      </div>
+      <div class="formgrid" style="margin-top:14px">
+        <div><label>სახელი *</label><input id="fieldFirst" autocomplete="given-name"></div>
+        <div><label>გვარი *</label><input id="fieldLast" autocomplete="family-name"></div>
+        <div class="full"><label>Personal ID / პირადი ნომერი *</label><input id="fieldPersonalId" autocomplete="off" placeholder="უნიკალური პირადი ნომერი" oninput="checkFieldPerson()"></div>
+        <div><label>დაკავშირებული შემთხვევა</label><select id="fieldCase"></select></div>
+        <div><label>როლი</label><select id="fieldRole"><option>მოწმე</option><option>მკვლევარი</option><option>ექსპერტი</option><option>მონაწილე</option><option>სხვა</option></select></div>
+      </div>
+      <div id="fieldExistingNotice" class="fieldStatus"></div>
+      <div class="actions" style="margin-top:16px">
+        <button class="btn ok cameraBtn" onclick="saveFieldPerson()">💾 პიროვნების შენახვა</button>
+        <button class="btn" onclick="resetFieldForm()">🔄 გასუფთავება</button>
+      </div>
+      <p class="small" style="margin-top:14px">ავტომატურად ჩაიწერება რეგისტრაციის თარიღი და დრო. V1-ში ფოტო ინახება ამ მოწყობილობის ბრაუზერში; დიდი რაოდენობის ფოტოებისთვის შემდეგ დავამატებთ Supabase Storage-ს.</p>
+    </div>
+  </div>
+</section>
+
+<section id="medical" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🩺 ჯანმრთელობა / სამედიცინო მონაცემები</h2>
+    <input id="medicalIdSearch" class="search" placeholder="🆔 Personal ID-ით ძებნა..." oninput="checkMedicalPerson()">
+    <select id="medicalPersonFilter" onchange="renderMedical()"></select>
+    <button class="btn ok" onclick="openMedicalModal()">＋ მონაცემების შეტანა ID-ით</button>
+  </div>
+  <div class="privacyNote">⚠️ <b>ეს არის მონაცემთა ჩაწერის/ატვირთვის განყოფილება.</b> უფოლოგი ან მკვლევარი აქ Personal ID-ით უკავშირებს ინფორმაციას შესაბამის პიროვნებას და საჭიროების შემთხვევაში ტვირთავს ექიმის/სპეციალისტის დასკვნას. პროგრამა თვითონ <b>არ ადგენს დიაგნოზს</b>, ჰალუცინაციას, ფსიქიკურ დაავადებას ან ჯანმრთელობის მდგომარეობას. ასეთი ინფორმაცია ჩაიწერება მხოლოდ მოწოდებული/დადასტურებული წყაროს მიხედვით.</div>
+  <div id="medicalMatch" class="resultBox" style="display:none"></div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>პიროვნება / ID</th><th>ექიმი</th><th>სპეციალობა</th><th>ჰალუცინაციები</th><th>ჯანმრთელობა</th><th>ფსიქიატრიული შემოწმება</th><th>სისხლის ჯგუფი</th><th>დასკვნა</th><th>ფაილი</th><th>შეყვანა</th><th>ქმედება</th></tr></thead><tbody id="medicalBody"></tbody></table></div>
+</section>
+
+<section id="dna" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🧬 DNA / ნათესაობის დადგენა</h2>
+    <button class="btn ok" onclick="openDnaModal()">＋ DNA ტესტის ჩანაწერი</button>
+  </div>
+  <div class="notice">DNA ნათესაობა ავტომატურად გამოჩნდება მხოლოდ მაშინ, როცა სისტემაში ჩაიწერება ტესტის შედეგი/დადასტურებული ნათესაობა. მხოლოდ DNA კოდის მსგავსებით ნათესაობის დასკვნა არ კეთდება.</div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>პიროვნება A</th><th>პიროვნება B</th><th>ნათესაობა</th><th>ტესტის სტატუსი</th><th>ტესტის თარიღი</th><th>წყარო / ლაბორატორია</th><th>შედეგი</th><th>ქმედება</th></tr></thead><tbody id="dnaBody"></tbody></table></div>
+</section>
+
+<section id="genealogy" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🌳 გენეალოგიური ხე / ნათესაური კავშირები</h2>
+    <select id="genealogyPersonFilter" onchange="renderGenealogy()"></select>
+    <button class="btn ok" onclick="openFamilyModal()">＋ ნათესავის დაკავშირება</button>
+  </div>
+  <div class="notice">Personal ID-ით დამატებისას, თუ პიროვნება უკვე არსებობს ბაზაში, პროგრამა აჩვენებს არსებულ ჩანაწერს და ახალი დუბლიკატის ნაცვლად მას უკავშირებს. გენეალოგიურ ხეში ნაჩვენებია მხოლოდ სისტემაში არსებული პიროვნებები და დადასტურებული/შეყვანილი კავშირები.</div>
+  <div id="genealogyOutput" class="card"></div>
+  <div class="card" style="margin-top:16px;padding:0;overflow:auto"><table><thead><tr><th>პიროვნება A</th><th>Personal ID</th><th>კავშირი</th><th>პიროვნება B</th><th>Personal ID</th><th>წყარო</th><th>ქმედება</th></tr></thead><tbody id="familyBody"></tbody></table></div>
+</section>
+
+<section id="missing" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🔎 დაკარგული ადამიანების ძებნა და აღმოჩენა</h2>
+    <input id="missingSearch" class="search" placeholder="🔎 სახელი, გვარი, ID, ადგილი..." oninput="renderMissing()">
+    <select id="missingStatusFilter" onchange="renderMissing()"><option value="">ყველა სტატუსი</option><option>დაკარგულია</option><option>ნაპოვნია — ცოცხალი</option><option>ნაპოვნია — გარდაცვლილი</option><option>დადასტურება საჭიროა</option></select>
+    <button class="btn ok" onclick="openMissingModal()">＋ დაკარგული პირის დამატება</button>
+  </div>
+  <div class="privacyNote">⚠️ <b>ძებნილი / დაკარგული პირების გაფრთხილების რეესტრი.</b> უფოლოგი/მკვლევარი ამატებს მხოლოდ შესაბამისი წყაროდან მიღებულ ინფორმაციას. სისტემა ამოწმებს ზუსტ Personal ID-ს, DNA პროფილის/კოდის ჩანაწერს და თითის ანაბეჭდის კვალის/რეფერენსის ჩანაწერს. დამთხვევა გამოაქვს <b>გამაფრთხილებელი ნიშნით</b>; საბოლოო იდენტიფიკაციას და სამართლებრივ გადაწყვეტილებას ადამიანი/კომპეტენტური უწყება ადასტურებს.</div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr><th>⚠️</th><th>ფოტო</th><th>სახელი და გვარი</th><th>ID</th><th>რეესტრი</th><th>დაკარგვის თარიღი</th><th>ბოლო ადგილი</th><th>სტატუსი</th><th>დამთხვევა</th><th>ქმედება</th></tr></thead><tbody id="missingBody"></tbody></table></div>
+</section>
+
+<section id="phenomena" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">👽 ფენომენები</h2>
+    <input id="phenomenonSearch" class="search" placeholder="🔎 ფენომენის ძებნა..." oninput="renderPhenomena()">
+    <select id="phenomenonCategoryFilter" onchange="renderPhenomena()"><option value="">ყველა კატეგორია</option></select>
+    <button class="btn ok" onclick="openPhenomenonModal()">＋ ფენომენის დამატება</button>
+  </div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr>
+    <th>ფენომენი</th><th>კატეგორია</th><th>აღწერა</th><th>შემთხვევები</th><th>ქმედება</th>
+  </tr></thead><tbody id="phenomenaBody"></tbody></table></div>
+</section>
+
+<section id="evidence" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">📁 კვლევის მასალები</h2>
+    <input id="evidenceSearch" class="search" placeholder="🔎 ძებნა..." oninput="renderEvidence()">
+    <button class="btn ok" onclick="openEvidenceModal()">＋ მასალის დამატება</button>
+  </div>
+  <div class="notice">V1-ში შესაძლებელია მასალის აღწერისა და ფაილის სახელის აღრიცხვა. დიდი ფოტო/ვიდეო ფაილებისთვის V2-ში დავამატებთ Supabase Storage-ს.</div>
+  <div class="card" style="padding:0;overflow:auto"><table><thead><tr>
+    <th>მასალა</th><th>ტიპი</th><th>შემთხვევა</th><th>აღწერა</th><th>ქმედება</th>
+  </tr></thead><tbody id="evidenceBody"></tbody></table></div>
+</section>
+
+<section id="reports" class="page">
+  <div class="toolbar"><h2 style="margin:0;flex:1">📋 კვლევის ანგარიშები</h2>
+    <button class="btn" onclick="printReport()">🖨 ბეჭდვა</button>
+  </div>
+  <div class="card">
+    <h3>შემთხვევის ანგარიშის შექმნა</h3>
+    <label>აირჩიეთ შემთხვევა</label>
+    <select id="reportCase"></select>
+    <button class="btn ok" style="margin-top:10px" onclick="generateReport()">ანგარიშის ნახვა</button>
+  </div>
+  <div id="reportOutput" class="card" style="margin-top:16px"></div>
+</section>
+
+<section id="backup" class="page">
+  <h2>💾 მონაცემების დაცვა</h2>
+  <div class="card">
+    <p>Export ქმნის JSON ფაილს. Import-ით შეგიძლია შემდეგში იგივე მონაცემები აღადგინო.</p>
+    <div class="actions">
+      <button class="btn ok" onclick="exportData()">⬇ მონაცემების Export</button>
+      <label class="btn" style="display:inline-block;width:auto">⬆ მონაცემების Import
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
+      <button class="btn danger" onclick="clearAll()">⚠ ყველა სატესტო მონაცემის წაშლა</button>
+    </div>
+    <p class="small">ძირითადი მონაცემები ინახება ამ კომპიუტერის ლოკალურ IndexedDB ბაზაში. JSON Backup გამოიყენება დამატებითი უსაფრთხო ასლისთვის.</p>
+  </div>
+</section>
+
+<section id="sync" class="page">
+  <div class="toolbar"><h2 style="margin:0;flex:1">☁️ ლოკალური ბაზა / დროებითი ონლაინ სინქრონიზაცია</h2><button class="btn ok" onclick="syncNow()">🔄 ახლა სინქრონიზაცია</button></div>
+  <div class="card">
+    <h3>💾 Local-first რეჟიმი</h3>
+    <p>კომპიუტერის ლოკალური ბაზა არის მთავარი. ინტერნეტი გამოიყენება მხოლოდ ახალი/შეცვლილი ჩანაწერების დროებით გადასაცემად და სხვა მოწყობილობიდან მიღებული ცვლილებების ჩამოსატანად.</p>
+    <div id="localDbStatus" class="notice">ლოკალური ბაზის სტატუსი იტვირთება...</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>⚙️ Supabase კავშირი</h3>
+    <div class="formgrid">
+      <div class="full"><label>Supabase Project URL</label><input id="syncUrl" placeholder="https://YOUR-PROJECT.supabase.co"></div>
+      <div class="full"><label>Supabase Anon Key</label><input id="syncKey" type="password" placeholder="eyJ..."></div>
+      <div><label>ბოლო სინქრონიზაცია</label><input id="lastSync" readonly></div>
+      <div><label>მოწყობილობის ID</label><input id="deviceId" readonly></div>
+    </div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn" onclick="saveSyncSettings()">💾 პარამეტრების შენახვა</button>
+      <button class="btn" onclick="testSyncConnection()">🔌 კავშირის შემოწმება</button>
+      <button class="btn ok" onclick="syncNow()">☁️ სინქრონიზაცია</button>
+    </div>
+    <div id="syncStatus" class="notice" style="margin-top:12px">ონლაინ სინქრონიზაცია ჯერ არ არის კონფიგურირებული.</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>📊 სინქრონიზაციის ლოგი</h3>
+    <div id="syncLog" class="small">ჯერ არაფერი შესრულებულა.</div>
+  </div>
+  <div class="privacyNote" style="margin-top:16px">⚠️ ონლაინ სინქრონიზაციის ჩართვისას Supabase-ში გადაეცემა მხოლოდ ახალი/შეცვლილი ჩანაწერები. ფოტო/ვიდეო ფაილების ცალკე Storage-სინქრონიზაცია შემდეგ ეტაპზე ჯობს, რათა მონაცემთა ბაზა არ გადაიტვირთოს.</div>
+</section>
+</main>
+
+<!-- CASE MODAL -->
+<div id="caseModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="caseModalTitle">ახალი შემთხვევა</h2><button class="close" onclick="closeModal('caseModal')">✕</button></div>
+<input type="hidden" id="caseId">
+<div class="formgrid">
+<div><label>შემთხვევის დასახელება *</label><input id="caseTitle" placeholder="მაგ. უცნობი ნათება ყაზბეგში"></div>
+<div><label>თარიღი *</label><input id="caseDate" type="date"></div>
+<div><label>დრო</label><input id="caseTime" type="time"></div>
+<div><label>ადგილი</label><input id="caseLocation" placeholder="ქალაქი, სოფელი, კონკრეტული ადგილი"></div>
+<div class="full"><label>📍 Google Maps / GPS მდებარეობა</label><div class="gpsLine"><div><input id="caseLat" placeholder="განედი — მაგ. 42.657" oninput="renderCaseMapPreview()"></div><div><input id="caseLng" placeholder="გრძედი — მაგ. 44.643" oninput="renderCaseMapPreview()"></div><button type="button" class="btn ok" onclick="getCaseLocation()">📍 ჩემი მდებარეობა</button></div><div class="hint">ღილაკი მხოლოდ თქვენი მოქმედებით იღებს მიმდინარე GPS მდებარეობას. კოორდინატები ინახება შემთხვევის ჩანაწერში.</div></div>
+<div class="full" id="caseMapPreview"></div>
+<div><label>ფენომენის ტიპი</label><select id="caseType"></select></div>
+<div><label>ხანგრძლივობა</label><input id="caseDuration" placeholder="მაგ. 3 წუთი"></div>
+<div><label>ამინდი</label><input id="caseWeather" placeholder="მოღრუბლული, ქარი..."></div>
+<div><label>მოწმეების რაოდენობა</label><input id="caseWitnesses" type="number" min="0" value="0"></div><div><label>დაკავშირებული პიროვნებები</label><select id="casePersons" class="multiselect" multiple></select><div class="hint">Ctrl/Cmd-ის დაჭერით შეგიძლიათ რამდენიმე პიროვნების არჩევა.</div></div>
+<div><label>კვლევის სტატუსი</label><select id="caseStatus">
+<option>შესასწავლია</option><option>მიმდინარეობს კვლევა</option><option>ახსნილი</option><option>ვერ აიხსნა</option><option>არასაკმარისი ინფორმაცია</option>
+</select></div>
+<div><label>სანდოობის შეფასება</label><select id="caseReliability"><option>უცნობია</option><option>დაბალი</option><option>საშუალო</option><option>მაღალი</option></select></div>
+<div class="full"><label>მოვლენის დეტალური აღწერა</label><textarea id="caseDescription"></textarea></div>
+<div class="full"><label>ქრონოლოგია</label><textarea id="caseTimeline" placeholder="რა მოხდა ეტაპობრივად..."></textarea></div>
+<div class="full"><label>კვლევის ჰიპოთეზა</label><textarea id="caseHypothesis" placeholder="რა შესაძლო ახსნა განიხილება..."></textarea></div>
+<div class="full"><label>მკვლევრის დასკვნა / შენიშვნები</label><textarea id="caseConclusion"></textarea></div>
+<div class="full"><label>📷 ფოტო / 🎥 ვიდეო — საველე მასალა</label><input id="caseMediaInput" type="file" accept="image/*,video/*" capture="environment" multiple onchange="handleCaseMedia(event)"><div class="hint">შეგიძლიათ გადაიღოთ/ატვირთოთ ფოტო და საჭიროების შემთხვევაში ვიდეო. დიდი ვიდეოფაილები ინახება ბრაუზერის IndexedDB-ში.</div><div id="caseMediaPreview" class="mediaPreviewGrid" style="margin-top:10px"></div></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveCase()">💾 შენახვა</button><button class="btn" onclick="closeModal('caseModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- PERSON MODAL -->
+<div id="personModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="personModalTitle">პიროვნების დამატება</h2><button class="close" onclick="closeModal('personModal')">✕</button></div>
+<input type="hidden" id="personId">
+<div class="cameraBox" style="margin:14px 0">
+  <b>📷 პიროვნების ფოტო</b>
+  <img id="personPhotoPreview" class="photoPreview" alt="პიროვნების ფოტო">
+  <label class="btn" style="display:inline-block;margin-top:10px">📷 ფოტოს გადაღება / ატვირთვა
+    <input id="personPhotoInput" type="file" accept="image/*" capture="environment" onchange="handlePersonPhoto(event)" style="display:none">
+  </label>
+  <div id="personPhotoInfo" class="small">ფოტო არ არის არჩეული</div>
+</div>
+<div class="formgrid">
+<div><label>სახელი *</label><input id="personFirst"></div>
+<div><label>გვარი *</label><input id="personLast"></div>
+<div><label>დაბადების თარიღი</label><input id="personBirthDate" type="date" onchange="updateAge()"></div>
+<div><label>ასაკი (ავტომატურად)</label><input id="personAge" readonly placeholder="ავტომატურად გამოითვლება"></div>
+<div><label>Personal ID / პირადი ნომერი *</label><input id="personPersonalId" placeholder="უნიკალური პირადი ID"></div>
+<div><label>პიროვნების შეფასება</label><select id="personPolarity"><option>არ არის შეფასებული</option><option>დადებითი პიროვნებაა</option><option>უარყოფითი პიროვნებაა</option></select></div>
+<div><label>სისხლის ჯგუფი</label><select id="personBloodGroup"><option>უცნობია</option><option>A+</option><option>A−</option><option>B+</option><option>B−</option><option>AB+</option><option>AB−</option><option>O+</option><option>O−</option></select></div>
+<div><label>DNA</label><input id="personDNA" placeholder="DNA პროფილის/იდენტიფიკატორის ჩანაწერი"></div>
+<div><label>🔎 თითის ანაბეჭდის კვალის რეფერენსი</label><input id="personFingerprint" placeholder="ოფიციალური კვალის/რეფერენსის ნომერი ან კოდი"></div>
+<div><label>პირადობის მოწმობის ტიპი</label><select id="personIdDocType"><option>პირადობის მოწმობა</option><option>პასპორტი</option><option>სხვა</option><option>არ არის მითითებული</option></select></div>
+<div><label>პირადობის მოწმობის ნომერი</label><input id="personIdDocNumber"></div>
+<div><label>გაცემის თარიღი</label><input id="personIdDocIssue" type="date"></div>
+<div><label>მოქმედების ვადა</label><input id="personIdDocExpiry" type="date"></div>
+<div><label>გამცემი ორგანო</label><input id="personIdDocAuthority"></div>
+<div><label>როლი შემთხვევასთან</label><select id="personRole"><option>მოწმე</option><option>მკვლევარი</option><option>ექსპერტი</option><option>მონაწილე</option><option>სხვა</option></select></div>
+<div><label>პროფესია / საქმიანობა</label><input id="personProfession" placeholder="მაგ. მხატვარი, მსახიობი, ხელოსანი, ინჟინერი"></div>
+<div><label>თანამდებობა</label><input id="personPosition" placeholder="მაგ. დირექტორი, მენეჯერი, მასწავლებელი"></div>
+<div><label>ორგანიზაცია / სამუშაო ადგილი</label><input id="personOrganization" placeholder="სად მუშაობს ან რომელ ორგანიზაციას უკავშირდება"></div>
+<div><label>ექსპერტიზის სფერო / სპეციალური უნარი</label><input id="personExpertise" placeholder="მაგ. ფოტოგრაფია, ელექტრონიკა, ავიაცია"></div>
+<div><label>ქალაქი / ქვეყანა</label><input id="personPlace"></div>
+<div class="full"><label>საკონტაქტო ნომრები</label><div id="phonesWrap"></div><button type="button" class="btn" style="margin-top:7px" onclick="addPhoneField()">＋ ნომრის დამატება</button></div>
+<div><label>ელფოსტა / სხვა საკონტაქტო ინფორმაცია</label><input id="personContact"></div>
+<div><label>საცხოვრებელი ბინა / მისამართი</label><input id="personAddress" placeholder="ქალაქი, ქუჩა, სახლის/ბინის ნომერი"></div>
+<div><label>Google Maps ლოკაცია</label><input id="personGoogleLocation" placeholder="Google Maps ბმული ან კოორდინატები"></div>
+<div><label>სანდოობის შეფასება</label><select id="personReliability"><option>უცნობია</option><option>დაბალი</option><option>საშუალო</option><option>მაღალი</option></select></div>
+<div class="full"><h3 class="sectiontitle">🩺 სამედიცინო / ფსიქიატრიული მონაცემები</h3></div>
+<div><label>ექიმის სახელი და გვარი</label><input id="personDoctorName" placeholder="დასკვნის გამცემი ექიმი"></div>
+<div><label>ექიმის პროფესია / სპეციალობა</label><input id="personDoctorProfession" placeholder="მაგ. ფსიქიატრი, ნევროლოგი, თერაპევტი"></div>
+<div><label>ექიმის საკონტაქტო</label><input id="personDoctorContact" placeholder="ტელეფონი / ელფოსტა"></div>
+<div><label>ჰალუცინაციების შეფასება</label><select id="personHallucinations"><option>არ შემოწმებულა</option><option>არ აღენიშნება — ექიმის შეფასებით</option><option>აღენიშნება — ექიმის შეფასებით</option><option>ინფორმაცია არასაკმარისია</option></select></div>
+<div><label>ზოგადი ჯანმრთელობის სტატუსი</label><select id="personHealthStatus"><option>არ შემოწმებულა</option><option>ჯანმრთელობის პრობლემა არ დაფიქსირდა — ექიმის შეფასებით</option><option>ჯანმრთელობის პრობლემა დაფიქსირდა</option><option>ინფორმაცია არასაკმარისია</option></select></div>
+<div><label>ფსიქიატრიული შემოწმება</label><select id="personPsychiatricStatus"><option>არ ჩატარებულა</option><option>ჩატარდა — ნორმის ფარგლებში</option><option>ჩატარდა — დამატებითი შეფასება საჭიროა</option><option>ინფორმაცია არასაკმარისია</option></select></div>
+<div><label>სამედიცინო დასკვნის თარიღი</label><input id="personMedicalDate" type="date"></div>
+<div><label>დასკვნის დოკუმენტის ნომერი</label><input id="personMedicalDocNo"></div>
+<div class="full"><label>ექიმის დასკვნა / კომენტარი</label><textarea id="personMedicalConclusion" placeholder="ჩაწერეთ მხოლოდ ექიმის/სპეციალისტის ოფიციალური დასკვნა ან დადასტურებული ინფორმაცია."></textarea></div>
+<div class="full"><label>ჩვენება / ინტერვიუს ჩანაწერი</label><textarea id="personStatement"></textarea></div>
+<div class="full"><label>მკვლევრის შენიშვნა</label><textarea id="personNotes"></textarea></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="savePerson()">💾 შენახვა</button><button class="btn" onclick="closeModal('personModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- PERSON VIEW MODAL -->
+<div id="personViewModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="personViewTitle">პიროვნება</h2><button class="close" onclick="closeModal('personViewModal')">✕</button></div>
+<div id="personViewBody"></div>
+<div class="actions" style="margin-top:16px"><button class="btn" onclick="closeModal('personViewModal')">დახურვა</button></div>
+</div></div>
+
+<!-- MEDICAL DATA MODAL -->
+<div id="medicalModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2>🩺 სამედიცინო მონაცემების შეტანა Personal ID-ით</h2><button class="close" onclick="closeModal('medicalModal')">✕</button></div>
+<div class="notice">უფოლოგი/მკვლევარი ამ ფორმით არ აკეთებს სამედიცინო შეფასებას — მხოლოდ აფიქსირებს მიღებულ ინფორმაციას და, საჭიროების შემთხვევაში, ატვირთავს ექიმის/სპეციალისტის დოკუმენტს.</div>
+<input type="hidden" id="medicalEditPersonId">
+<div class="formgrid">
+<div class="full"><label>პიროვნების Personal ID *</label><input id="medicalTargetId" placeholder="შეიყვანეთ ზუსტი Personal ID" oninput="checkMedicalModalPerson()"><div id="medicalTargetNotice" class="resultBox" style="display:none"></div></div>
+<div><label>ექიმის სახელი და გვარი</label><input id="medicalDoctorName"></div>
+<div><label>ექიმის პროფესია / სპეციალობა</label><input id="medicalDoctorProfession" placeholder="მაგ. ფსიქიატრი, ნევროლოგი, თერაპევტი"></div>
+<div><label>ექიმის საკონტაქტო</label><input id="medicalDoctorContact"></div>
+<div><label>სისხლის ჯგუფი</label><select id="medicalBloodGroup"><option>უცნობია</option><option>O(I) Rh+</option><option>O(I) Rh−</option><option>A(II) Rh+</option><option>A(II) Rh−</option><option>B(III) Rh+</option><option>B(III) Rh−</option><option>AB(IV) Rh+</option><option>AB(IV) Rh−</option></select></div>
+<div><label>ჰალუცინაციების შესახებ წყაროს ჩანაწერი</label><select id="medicalHallucinations"><option>არ არის მონაცემი</option><option>არ აღენიშნება — ექიმის/სპეციალისტის ინფორმაციით</option><option>აღენიშნება — ექიმის/სპეციალისტის ინფორმაციით</option><option>გაურკვეველია / დამატებითი შეფასება საჭიროა</option></select></div>
+<div><label>ზოგადი ჯანმრთელობის შესახებ წყარო</label><select id="medicalHealthStatus"><option>არ არის მონაცემი</option><option>ჯანმრთელობის პრობლემა არ დაფიქსირდა — ექიმის ინფორმაციით</option><option>ჯანმრთელობის პრობლემა დაფიქსირდა — ექიმის ინფორმაციით</option><option>გაურკვეველია / დამატებითი შეფასება საჭიროა</option></select></div>
+<div><label>ფსიქიატრიული შემოწმების შესახებ წყარო</label><select id="medicalPsychiatricStatus"><option>არ არის მონაცემი</option><option>ჩატარდა — შედეგი მიღებულია</option><option>ჩატარდა — დამატებითი შეფასება საჭიროა</option><option>არ ჩატარებულა</option></select></div>
+<div><label>სამედიცინო დასკვნის თარიღი</label><input id="medicalDate" type="date"></div>
+<div><label>დასკვნის დოკუმენტის ნომერი</label><input id="medicalDocNo"></div>
+<div><label>მონაცემი შეიყვანა უფოლოგმა / მკვლევარმა</label><input id="medicalEnteredBy" placeholder="სახელი და გვარი"></div>
+<div><label>შეყვანის თარიღი</label><input id="medicalEnteredAt" type="datetime-local"></div>
+<div class="full"><label>ექიმის/სპეციალისტის დასკვნის ტექსტი</label><textarea id="medicalConclusion" placeholder="ჩაწერეთ მიღებული დასკვნა ზუსტად ან მოკლე, ფაქტობრივი ფორმით."></textarea></div>
+<div class="full"><label>დამატებითი წყარო / შენიშვნა</label><textarea id="medicalSourceNote" placeholder="სად/ვისგან იქნა მიღებული ინფორმაცია, დამატებითი განმარტება და ა.შ."></textarea></div>
+<div class="full"><label>ექიმის დასკვნის ან სხვა შესაბამისი დოკუმენტის ატვირთვა</label><input id="medicalFileInput" type="file" accept="application/pdf,image/*,.doc,.docx" onchange="handleMedicalFile(event)"><div id="medicalFileInfo" class="small" style="margin-top:8px">ფაილი არ არის არჩეული</div><div id="medicalFileLink" style="margin-top:8px"></div></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveMedicalData()">💾 შენახვა</button><button class="btn" onclick="closeModal('medicalModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- MEDICAL REPORT VIEW MODAL -->
+<div id="medicalReportModal" class="modal"><div class="modalbox" style="max-width:1000px">
+<div class="modalhead"><h2>📄 სამედიცინო დასკვნის დოსიე</h2><button class="close" onclick="closeModal('medicalReportModal')">✕</button></div>
+<div id="medicalReportContent"></div>
+<div id="medicalReportFile" style="margin-top:16px"></div>
+<div id="medicalReportPreview" style="margin-top:16px"></div>
+<div class="actions" style="margin-top:18px"><button class="btn ok" onclick="downloadMedicalReportFile()">⬇️ ფაილის ჩამოტვირთვა</button><button class="btn" onclick="printMedicalReport()">🖨️ ამობეჭდვა</button><button class="btn" onclick="closeModal('medicalReportModal')">დახურვა</button></div>
+</div></div>
+
+<!-- DNA MODAL -->
+<div id="dnaModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2>🧬 DNA ტესტი / ნათესაობა</h2><button class="close" onclick="closeModal('dnaModal')">✕</button></div>
+<div class="formgrid">
+<div><label>პიროვნება A *</label><select id="dnaA"></select></div><div><label>პიროვნება B *</label><select id="dnaB"></select></div>
+<div><label>ნათესაობის ტიპი</label><select id="dnaRelation"><option>მშობელი / შვილი</option><option>და-ძმა</option><option>ბებია-ბაბუა / შვილიშვილი</option><option>ბიძა/დეიდა / ძმისშვილი/დისშვილი</option><option>ბიძაშვილი</option><option>სხვა ნათესაობა</option><option>ნათესაობა არ დადასტურდა</option></select></div>
+<div><label>ტესტის სტატუსი</label><select id="dnaStatus"><option>დადასტურებულია</option><option>არ დადასტურდა</option><option>მიმდინარეობს</option><option>საჭიროა განმეორებითი ტესტი</option></select></div>
+<div><label>ტესტის თარიღი</label><input id="dnaDate" type="date"></div><div><label>ლაბორატორია / წყარო</label><input id="dnaLab"></div>
+<div class="full"><label>ტესტის შედეგი</label><textarea id="dnaResult" placeholder="ოფიციალური ლაბორატორიული შედეგის მოკლე ჩანაწერი"></textarea></div>
+<div class="full"><label>შენიშვნა</label><textarea id="dnaNotes"></textarea></div>
+</div><div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveDna()">💾 შენახვა</button><button class="btn" onclick="closeModal('dnaModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- FAMILY RELATION MODAL -->
+<div id="familyModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="familyModalTitle">🌳 ნათესაური კავშირის დამატება</h2><button class="close" onclick="closeModal('familyModal')">✕</button></div>
+<input type="hidden" id="familyId">
+<div class="formgrid">
+<div><label>პიროვნება A *</label><select id="familyA"></select></div>
+<div><label>პიროვნება B — Personal ID-ით მოძებნა *</label><input id="familyBId" placeholder="შეიყვანეთ არსებული პიროვნების Personal ID" oninput="findFamilyPersonById()"><div id="familyBMatch"></div></div>
+<div><label>ნათესაური კავშირი</label><select id="familyRelation"><option value="parent">მშობელი → შვილი</option><option value="child">შვილი → მშობელი</option><option value="sibling">და / ძმა</option><option value="grandparent">ბებია / ბაბუა → შვილიშვილი</option><option value="grandchild">შვილიშვილი → ბებია / ბაბუა</option><option value="uncle">ბიძა / დეიდა → დისშვილი / ძმისშვილი</option><option value="cousin">ბიძაშვილი</option><option value="spouse">მეუღლე</option><option value="other">სხვა ნათესაობა</option></select></div>
+<div><label>წყარო</label><select id="familySource"><option>უფოლოგის/მკვლევრის ჩანაწერი</option><option>DNA ტესტით დადასტურებული</option><option>ოფიციალური დოკუმენტი</option><option>პიროვნების განცხადება</option><option>სხვა წყარო</option></select></div>
+<div class="full"><label>შენიშვნა</label><textarea id="familyNotes" placeholder="კავშირის შესახებ დამატებითი ინფორმაცია"></textarea></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveFamilyRelation()">💾 დაკავშირება</button><button class="btn" onclick="closeModal('familyModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- MISSING PERSON MODAL -->
+<div id="missingModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2>🔎 დაკარგული პირის ჩანაწერი</h2><button class="close" onclick="closeModal('missingModal')">✕</button></div>
+<input type="hidden" id="missingId">
+<div class="formgrid">
+<div><label>სახელი *</label><input id="missingFirst"></div><div><label>გვარი *</label><input id="missingLast"></div>
+<div><label>Personal ID</label><input id="missingPersonalId" oninput="checkMissingMatch()"></div><div><label>დაკარგვის თარიღი</label><input id="missingDate" type="date"></div>
+<div><label>რეესტრის ტიპი</label><select id="missingRegistryType" onchange="checkMissingMatch()"><option>დაკარგული პირი</option><option>პოლიციის მიერ ძებნილი</option></select></div>
+<div><label>პოლიციის / უწყების საქმე №</label><input id="missingPoliceCaseNo" placeholder="თუ არსებობს"></div>
+<div><label>პასუხისმგებელი უწყება</label><input id="missingPoliceAuthority" placeholder="მაგ. პოლიცია / შესაბამისი უწყება"></div>
+<div><label>🧬 DNA პროფილის/კოდის რეფერენსი</label><input id="missingDNA" oninput="checkMissingMatch()" placeholder="ოფიციალური ლაბორატორიული რეფერენსი"></div>
+<div><label>🔎 თითის ანაბეჭდის კვალის რეფერენსი</label><input id="missingFingerprint" oninput="checkMissingMatch()" placeholder="ოფიციალური კვალის/რეფერენსის ნომერი ან კოდი"></div>
+<div><label>ბოლო ცნობილი ადგილი</label><input id="missingLastPlace"></div><div><label>სტატუსი</label><select id="missingStatus"><option>დაკარგულია</option><option>ნაპოვნია — ცოცხალი</option><option>ნაპოვნია — გარდაცვლილი</option><option>დადასტურება საჭიროა</option></select></div>
+<div class="full"><div id="missingMatch"></div></div>
+<div class="full"><label>ფოტო</label><img id="missingPhotoPreview" class="photoPreview" alt="ფოტო"><label class="btn" style="display:inline-block">📷 ფოტოს გადაღება / ატვირთვა<input id="missingPhotoInput" type="file" accept="image/*" capture="environment" onchange="handleMissingPhoto(event)" style="display:none"></label></div>
+<div class="full"><label>დაკარგვის გარემოებები</label><textarea id="missingDescription"></textarea></div>
+<div><label>აღმოჩენის თარიღი</label><input id="missingFoundDate" type="date"></div><div><label>აღმოჩენის ადგილი</label><input id="missingFoundPlace"></div>
+<div class="full"><label>დაკავშირებული პიროვნება (თუ იდენტიფიცირებულია)</label><select id="missingLinkedPerson"></select></div>
+<div class="full"><label>შენიშვნა</label><textarea id="missingNotes"></textarea></div>
+</div><div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveMissing()">💾 შენახვა</button><button class="btn" onclick="closeModal('missingModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- PHENOMENON MODAL -->
+<div id="phenomenonModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="phenomenonModalTitle">ფენომენის დამატება</h2><button class="close" onclick="closeModal('phenomenonModal')">✕</button></div>
+<input type="hidden" id="phenomenonId">
+<div class="formgrid">
+<div><label>ფენომენის უნიკალური ID *</label><input id="phenomenonCode" placeholder="მაგ. UAP-000001"><div class="hint">თუ ეს ID უკვე არსებობს, პროგრამა არსებულ ფენომენს დაუკავშირებს და დუბლიკატს არ შექმნის.</div></div>
+<div><label>ფენომენის სახელი * (უნიკალური)</label><input id="phenomenonName"><div class="hint">ერთი და იგივე ფენომენის სახელით დუბლიკატი არ შეიქმნება — არსებული ჩანაწერი გამოიყენება დაკავშირებისთვის.</div></div>
+<div><label>კატეგორია</label><select id="phenomenonCategory"></select></div>
+<div><label>＋ ახალი კატეგორია</label><input id="newPhenomenonCategory" placeholder="მაგ. დროითი ანომალია"><button class="btn" style="margin-top:6px" onclick="addPhenomenonCategory()">კატეგორიის დამატება</button></div>
+<div class="full"><label>აღწერა</label><textarea id="phenomenonDescription"></textarea></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="savePhenomenon()">💾 შენახვა</button><button class="btn" onclick="closeModal('phenomenonModal')">გაუქმება</button></div>
+</div></div>
+
+<!-- PHENOMENON VIEW MODAL -->
+<div id="phenomenonViewModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2 id="phenomenonViewTitle">ფენომენი</h2><button class="close" onclick="closeModal('phenomenonViewModal')">✕</button></div>
+<div id="phenomenonViewBody"></div>
+<div class="actions" style="margin-top:16px"><button class="btn" onclick="closeModal('phenomenonViewModal')">დახურვა</button></div>
+</div></div>
+
+<!-- EVIDENCE MODAL -->
+<div id="evidenceModal" class="modal"><div class="modalbox">
+<div class="modalhead"><h2>მასალის დამატება</h2><button class="close" onclick="closeModal('evidenceModal')">✕</button></div>
+<div class="formgrid">
+<div><label>მასალის სახელი *</label><input id="evidenceName"></div>
+<div><label>ტიპი</label><select id="evidenceType"><option>ფოტო</option><option>ვიდეო</option><option>აუდიო</option><option>დოკუმენტი</option><option>სხვა</option></select></div>
+<div><label>დაკავშირებული შემთხვევა</label><select id="evidenceCase"></select></div>
+<div><label>ფაილის სახელი / ბმული</label><input id="evidenceFile"></div>
+<div class="full"><label>აღწერა</label><textarea id="evidenceDescription"></textarea></div>
+</div>
+<div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveEvidence()">💾 შენახვა</button><button class="btn" onclick="closeModal('evidenceModal')">გაუქმება</button></div>
+</div></div>
+
+<script>
+const KEY="ufology_v1_data";
+const LOCAL_DB_NAME="ufology_local_main";
+const LOCAL_DB_STORE="state";
+const SYNC_KEY="ufology_sync_settings";
+const SYNC_META_KEY="ufology_sync_meta";
+const SUPABASE_PROJECT_URL="https://ihuiepozcsptkxslpgjb.supabase.co";
+const SUPABASE_API_KEY="sb_publishable_iM_PP_hIpGCsAPn1-lAj3w_FH9kI3fS";
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[]};
+let previousDbSnapshot=JSON.stringify(db);
+let localDbReady=false;
+let syncMeta=JSON.parse(localStorage.getItem(SYNC_META_KEY)||'null')||{deviceId:uidSafeDevice(),lastSyncAt:"",dirty:{}};
+function uidSafeDevice(){return "DEV-"+Math.random().toString(36).slice(2,10).toUpperCase()+"-"+Date.now().toString(36).toUpperCase()}
+function localMainDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(LOCAL_DB_NAME,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(LOCAL_DB_STORE))d.createObjectStore(LOCAL_DB_STORE,{keyPath:"id"})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function initLocalDatabase(){try{const d=await localMainDB();const row=await new Promise((res,rej)=>{const r=d.transaction(LOCAL_DB_STORE,"readonly").objectStore(LOCAL_DB_STORE).get("main");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});if(row?.data){db=row.data;normalizeDB();localStorage.setItem(KEY,JSON.stringify(db));previousDbSnapshot=JSON.stringify(db)}else{normalizeDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}d.close();localDbReady=true;renderAll();updateSyncUI()}catch(e){console.warn("IndexedDB unavailable",e);localDbReady=false;renderAll();updateSyncUI()}}
+function normalizeDB(){db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.cases=Array.isArray(db.cases)?db.cases:[];db.persons=Array.isArray(db.persons)?db.persons:[];db.phenomena=Array.isArray(db.phenomena)?db.phenomena:[];db.evidence=Array.isArray(db.evidence)?db.evidence:[];db.categories=Array.isArray(db.categories)?db.categories:[]}
+function markSyncChanges(oldObj,newObj){const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"];for(const t of types){const a=Array.isArray(oldObj?.[t])?oldObj[t]:[],b=Array.isArray(newObj?.[t])?newObj[t]:[];const am=new Map(a.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)])),bm=new Map(b.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));for(const [id,val] of bm)if(am.get(id)!==val)syncMeta.dirty[t+":"+id]={type:t,id,deleted:false};for(const [id] of am)if(!bm.has(id))syncMeta.dirty[t+":"+id]={type:t,id,deleted:true}}localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta))}
+function saveDB(){normalizeDB();const old=JSON.parse(previousDbSnapshot||"{}");markSyncChanges(old,db);previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);renderAll();updateSyncUI()}
+db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];
+db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];
+db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];
+db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||"";m.updatedAt=m.updatedAt||new Date().toISOString()});
+db.persons.forEach(p=>{if(p.fingerprintTrace===undefined)p.fingerprintTrace=""});
+db.categories=[...new Set([...(db.categories||[]),"UFO / UAP","უცნობი ნათება","ცაში მოვლენა","ხმოვანი ფენომენი","ფიზიკური კვალი","რადიო / ელექტრომაგნიტური","ადამიანთან დაკავშირებული","დროითი ანომალია","ადამიანთან დაკავშირებული გამოცდილება","სხვა"])];
+db.phenomena.forEach((p,i)=>{if(!p.code)p.code="PH-"+String(i+1).padStart(6,"0")});
+db.persons.forEach(p=>{if(!p.medical)p.medical={};p.medical.enteredBy=p.medical.enteredBy||"";p.medical.enteredAt=p.medical.enteredAt||"";p.medical.sourceNote=p.medical.sourceNote||"";p.medical.fileData=p.medical.fileData||"";p.medical.fileName=p.medical.fileName||"";p.phones=Array.isArray(p.phones)?p.phones:(p.contact?[p.contact]:[]);if(p.age===undefined)p.age=calcAge(p.birthDate);if(p.address===undefined)p.address="";if(p.googleLocation===undefined)p.googleLocation="";if(p.fingerprintTrace===undefined)p.fingerprintTrace="";if(p.photoData===undefined)p.photoData="";if(p.photoCapturedAt===undefined)p.photoCapturedAt="";if(p.registeredAt===undefined)p.registeredAt="";if(p.fieldCaseId===undefined)p.fieldCaseId=""});
+
+db.cases.forEach(c=>{if(!Array.isArray(c.mediaIds))c.mediaIds=[]});
+function saveDB(){localStorage.setItem(KEY,JSON.stringify(db));renderAll();}
+function uid(prefix){return prefix+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7).toUpperCase()}
+function calcAge(date){if(!date)return "";const b=new Date(date+"T00:00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();const m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a>=0?a:""}
+function addPhoneField(value=""){const wrap=document.getElementById("phonesWrap");const row=document.createElement("div");row.className="phoneRow";row.style.cssText="display:flex;gap:8px;margin-top:7px";row.innerHTML=`<input class="personPhone" placeholder="+995 5XX XX XX XX" value="${esc(value)}"><button type="button" class="btn danger" onclick="this.parentElement.remove()">−</button>`;wrap.appendChild(row)}
+function getPhones(){return [...document.querySelectorAll(".personPhone")].map(x=>x.value.trim()).filter(Boolean)}
+function setPhones(arr){document.getElementById("phonesWrap").innerHTML="";(arr&&arr.length?arr:[""]).forEach(addPhoneField)}
+function compressImage(file,maxSize=1200,quality=.76){return new Promise((resolve,reject)=>{if(!file){resolve("");return}const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(Math.max(w,h)>maxSize){const scale=maxSize/Math.max(w,h);w=Math.round(w*scale);h=Math.round(h*scale)}const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);resolve(c.toDataURL("image/jpeg",quality))};img.onerror=reject;img.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
+function handleFieldPhoto(e){const f=e.target.files?.[0];if(!f)return;compressImage(f).then(data=>{fieldPhotoPreview.src=data;fieldPhotoPreview.style.display="block";fieldPhotoPreview.dataset.data=data;fieldPhotoInfo.textContent=`არჩეულია: ${f.name}`}).catch(()=>alert("ფოტოს დამუშავება ვერ მოხერხდა."))}
+function handlePersonPhoto(e){const f=e.target.files?.[0];if(!f)return;compressImage(f).then(data=>{personPhotoPreview.src=data;personPhotoPreview.style.display="block";personPhotoPreview.dataset.data=data;personPhotoInfo.textContent=`არჩეულია: ${f.name}`}).catch(()=>alert("ფოტოს დამუშავება ვერ მოხერხდა."))}
+function fillFieldCaseSelect(){const s=document.getElementById("fieldCase");if(!s)return;s.innerHTML='<option value="">— შემთხვევის გარეშე —</option>'+db.cases.map(c=>`<option value="${esc(c.id)}">${esc(c.title)} — ${esc(c.date)}</option>`).join("")}
+function checkFieldPerson(){const id=document.getElementById("fieldPersonalId").value.trim();const box=document.getElementById("fieldExistingNotice");const existing=db.persons.find(p=>p.personalId===id);document.getElementById("fieldExistingId").value=existing?.id||"";if(existing){box.className="fieldStatus warn";box.style.display="block";box.innerHTML=`⚠️ ეს Personal ID უკვე არსებობს: <b>${esc(existing.first)} ${esc(existing.last)}</b>. შენახვისას ახალი პიროვნება არ შეიქმნება — არსებული ჩანაწერი განახლდება.`;if(!fieldFirst.value)fieldFirst.value=existing.first||"";if(!fieldLast.value)fieldLast.value=existing.last||"";if(existing.photoData&&!fieldPhotoPreview.dataset.data){fieldPhotoPreview.src=existing.photoData;fieldPhotoPreview.style.display="block";fieldPhotoPreview.dataset.data=existing.photoData;fieldPhotoInfo.textContent="არსებული ფოტო"}}else{box.className="fieldStatus";box.style.display="none"}}
+function resetFieldForm(){["fieldFirst","fieldLast","fieldPersonalId"].forEach(id=>document.getElementById(id).value="");document.getElementById("fieldExistingId").value="";document.getElementById("fieldCase").value="";document.getElementById("fieldRole").value="მოწმე";fieldPhotoInput.value="";fieldPhotoPreview.src="";fieldPhotoPreview.style.display="none";delete fieldPhotoPreview.dataset.data;fieldPhotoInfo.textContent="ფოტო ჯერ არ არის არჩეული";document.getElementById("fieldExistingNotice").style.display="none"}
+function saveFieldPerson(){const first=fieldFirst.value.trim(),last=fieldLast.value.trim(),personalId=fieldPersonalId.value.trim();if(!first||!last||!personalId){alert("სახელი, გვარი და Personal ID აუცილებელია.");return}const now=new Date().toISOString(),existing=db.persons.find(p=>p.personalId===personalId);let p;if(existing){p={...existing,first,last,personalId,role:fieldRole.value,photoData:fieldPhotoPreview.dataset.data||existing.photoData||"",photoCapturedAt:fieldPhotoPreview.dataset.data?now:(existing.photoCapturedAt||""),registeredAt:existing.registeredAt||now,fieldCaseId:fieldCase.value||existing.fieldCaseId||""};db.persons[db.persons.findIndex(x=>x.id===existing.id)]=p;if(fieldCase.value){const c=db.cases.find(x=>x.id===fieldCase.value);if(c){c.personIds=[...new Set([...(c.personIds||[]),p.id])];p.caseIds=[...new Set([...(p.caseIds||[]),c.id])]} }alert("არსებული პიროვნება განახლდა და ფოტო მიება ჩანაწერს.")}else{p={id:uid("PER"),first,last,personalId,role:fieldRole.value,polarity:"არ არის შეფასებული",bloodGroup:"უცნობია",dna:"",profession:"",position:"",organization:"",expertise:"",place:"",contact:"",address:"",googleLocation:"",reliability:"უცნობია",statement:"",notes:"",idDocType:"პირადობის მოწმობა",idDocNumber:"",idDocIssue:"",idDocExpiry:"",idDocAuthority:"",phones:[],caseIds:fieldCase.value?[fieldCase.value]:[],photoData:fieldPhotoPreview.dataset.data||"",photoCapturedAt:fieldPhotoPreview.dataset.data?now:"",registeredAt:now,fieldCaseId:fieldCase.value||""};db.persons.push(p);if(fieldCase.value){const c=db.cases.find(x=>x.id===fieldCase.value);if(c)c.personIds=[...new Set([...(c.personIds||[]),p.id])]}alert("პიროვნება წარმატებით დაემატა.")}saveDB();resetFieldForm()}
+
+function updateAge(){document.getElementById("personAge").value=calcAge(document.getElementById("personBirthDate").value)||"—"}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function showPage(id,btn){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");renderAll()}
+function closeModal(id){document.getElementById(id).classList.remove("show")}
+function badge(status){let c=status==="ახსნილი"?"green":status==="ვერ აიხსნა"?"red":status==="მიმდინარეობს კვლევა"?"blue":status==="არასაკმარისი ინფორმაცია"?"gray":"yellow";return `<span class="badge ${c}">${esc(status)}</span>`}
+
+function seed(){
+ if(db.cases.length||db.persons.length||db.phenomena.length) return;
+ const ph={id:uid("PH"),code:"UAP-000001",name:"უცნობი ნათება",category:"უცნობი ნათება",description:"სატესტო ფენომენი"};
+ db.phenomena.push(ph);
+ const c={id:uid("CASE"),title:"სატესტო შემთხვევა — უცნობი ნათება",date:new Date().toISOString().slice(0,10),time:"22:15",location:"Stepantsminda, საქართველო",lat:"42.657",lng:"44.643",type:"უცნობი ნათება",duration:"დაახლოებით 3 წუთი",weather:"მოწმენდილი",witnesses:2,status:"მიმდინარეობს კვლევა",reliability:"საშუალო",description:"სატესტო ჩანაწერი UFOLOGY სისტემის ფუნქციების შესამოწმებლად.",timeline:"22:15 — მოწმეებმა ცაზე მოძრავი ნათება შენიშნეს.\n22:18 — ნათება გაქრა.",hypothesis:"საჭიროა დამატებითი მასალის შესწავლა.",conclusion:"საბოლოო დასკვნა ჯერ არ არსებობს.",mediaIds:[],created:new Date().toISOString()};
+ db.cases.push(c);
+ db.persons.push({id:uid("PER"),medical:{},first:"სატესტო",last:"მოწმე",personalId:"TEST-001",role:"მოწმე",polarity:"დადებითი პიროვნებაა",bloodGroup:"უცნობია",dna:"",place:"Stepantsminda",contact:"",reliability:"საშუალო",statement:"დავინახე უცნობი ნათება.",notes:"სატესტო პიროვნება",idDocType:"პირადობის მოწმობა",idDocNumber:"",idDocIssue:"",idDocExpiry:"",idDocAuthority:"",fingerprintTrace:"",caseIds:[],photoData:"",photoCapturedAt:"",registeredAt:new Date().toISOString(),fieldCaseId:""});
+ db.evidence.push({id:uid("EVD"),name:"სატესტო ფოტო",type:"ფოტო",caseId:c.id,file:"test-photo.jpg",description:"სატესტო მასალის ჩანაწერი."});
+ saveDB();
+}
+function normalizeMatch(v){return String(v||"").trim().toLowerCase().replace(/\s+/g,"")}
+function findPoliceAlertsForPerson(p){
+ const alerts=[]; if(!p)return alerts;
+ const pid=normalizeMatch(p.personalId),dna=normalizeMatch(p.dna),fp=normalizeMatch(p.fingerprintTrace||p.fingerprintRef);
+ db.missingPersons.forEach(m=>{
+   const matches=[];
+   if(pid&&normalizeMatch(m.personalId)===pid)matches.push("Personal ID");
+   if(dna&&normalizeMatch(m.dnaRef)===dna)matches.push("DNA");
+   if(fp&&normalizeMatch(m.fingerprintRef)===fp)matches.push("თითის ანაბეჭდი");
+   if(matches.length)alerts.push({record:m,matches});
+ }); return alerts;
+}
+function policeAlertHTML(p,compact=false){
+ const alerts=findPoliceAlertsForPerson(p); if(!alerts.length)return "";
+ return `<div class="dangerNote" style="margin:${compact?'0':'12px 0'}">🚨 <b>გაფრთხილება — რეესტრში შესაძლო დამთხვევა</b><br>${alerts.map(a=>`<div style="margin-top:6px"><b>${esc(a.record.registryType||"რეესტრი")}</b>: ${esc(a.record.first)} ${esc(a.record.last)} — დამთხვევა: <b>${esc(a.matches.join(", "))}</b>${a.record.policeCaseNo?` — საქმე № ${esc(a.record.policeCaseNo)}`:""}${a.record.policeAuthority?` — ${esc(a.record.policeAuthority)}`:""}</div>`).join("")}<div class="small" style="margin-top:7px">ეს არის მონაცემთა დამთხვევის გაფრთხილება და არა ავტომატური იდენტიფიკაცია ან სამართლებრივი დასკვნა.</div></div>`;
+}
+function scanAllPersonAlerts(){return db.persons.map(p=>({person:p,alerts:findPoliceAlertsForPerson(p)})).filter(x=>x.alerts.length)}
+function fillMissingPersonSelect(){const s=document.getElementById("missingLinkedPerson");if(!s)return;s.innerHTML='<option value="">— ჯერ არ არის იდენტიფიცირებული —</option>'+db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId||"")}</option>`).join("")}
+function renderAll(){
+ document.getElementById("statCases").textContent=db.cases.length;
+ document.getElementById("statPersons").textContent=db.persons.length;
+ document.getElementById("statPhenomena").textContent=db.phenomena.length;
+ document.getElementById("statEvidence").textContent=db.evidence.length;
+ renderCases();renderPersons();renderPhenomena();renderEvidence();renderDashboard();renderMedical();renderDna();renderMissing();renderGenealogy();fillSelects();fillFieldCaseSelect();fillMissingPersonSelect();
+}
+function renderDashboard(){
+ const counts={};db.cases.forEach(c=>counts[c.status]=(counts[c.status]||0)+1);
+ document.getElementById("statusStats").innerHTML=Object.keys(counts).length?Object.entries(counts).map(([k,v])=>`<div style="margin:8px 0">${badge(k)} <b>${v}</b></div>`).join(""):"<div class='empty'>მონაცემები არ არის</div>";
+ const recent=[...db.cases].sort((a,b)=>(b.created||"").localeCompare(a.created||"")).slice(0,5);
+ document.getElementById("recentCases").innerHTML=recent.length?recent.map(c=>`<div style="padding:10px 0;border-bottom:1px solid #263c5b"><b>${esc(c.title)}</b><br><span class="small">${esc(c.date)} • ${esc(c.location)} • ${badge(c.status)}</span></div>`).join(""):"<div class='empty'>შემთხვევები არ არის</div>";
+}
+function renderCases(){
+ const q=(document.getElementById("caseSearch")?.value||"").toLowerCase();
+ const st=document.getElementById("caseStatusFilter")?.value||"";
+ const arr=db.cases.filter(c=>(!st||c.status===st)&&JSON.stringify(c).toLowerCase().includes(q));
+ document.getElementById("casesBody").innerHTML=arr.length?arr.map((c,i)=>`<tr>
+ <td>${esc(c.id)}</td><td>${esc(c.date)} ${esc(c.time)}</td><td><b>${esc(c.title)}</b></td><td>${esc(c.location)}</td><td>${esc(c.type)}</td><td>${badge(c.status)}</td>
+ <td><div class="actions"><button class="btn" onclick="viewCase('${c.id}')">ნახვა</button><button class="btn" onclick="editCase('${c.id}')">რედაქტირება</button><button class="btn danger" onclick="deleteCase('${c.id}')">წაშლა</button></div></td>
+ </tr>`).join(""):"<tr><td colspan='7' class='empty'>შემთხვევა ვერ მოიძებნა</td></tr>";
+}
+function openCaseModal(id=null){
+ document.getElementById("caseModalTitle").textContent=id?"შემთხვევის რედაქტირება":"ახალი შემთხვევა";
+ document.getElementById("caseId").value=id||"";
+ ["caseTitle","caseDate","caseTime","caseLocation","caseLat","caseLng","caseDuration","caseWeather","caseDescription","caseTimeline","caseHypothesis","caseConclusion"].forEach(x=>document.getElementById(x).value="");
+document.getElementById("caseMediaInput").value="";document.getElementById("caseMediaPreview").innerHTML="";renderCaseMapPreview();
+ document.getElementById("caseWitnesses").value=0;document.getElementById("caseStatus").value="შესასწავლია";document.getElementById("caseReliability").value="უცნობია";
+if(!id){const now=new Date();document.getElementById("caseDate").value=now.toISOString().slice(0,10);document.getElementById("caseTime").value=now.toTimeString().slice(0,5)}
+ fillPhenomenonSelect("caseType"); fillPersonSelect("casePersons");
+ if(id){const c=db.cases.find(x=>x.id===id);if(!c)return;for(const k of ["title","date","time","location","lat","lng","duration","weather","witnesses","description","timeline","hypothesis","conclusion"])document.getElementById("case"+k[0].toUpperCase()+k.slice(1)).value=c[k]??"";document.getElementById("caseStatus").value=c.status;document.getElementById("caseReliability").value=c.reliability;document.getElementById("caseType").value=c.type; [...document.getElementById("casePersons").options].forEach(o=>o.selected=(c.personIds||[]).includes(o.value));renderCaseMediaPreview(c.mediaIds||[])}
+ document.getElementById("caseModal").classList.add("show");
+}
+async function saveCase(){
+ const title=document.getElementById("caseTitle").value.trim(),date=document.getElementById("caseDate").value;
+ if(!title||!date){alert("დასახელება და თარიღი აუცილებელია.");return}
+ const id=document.getElementById("caseId").value;
+ const personIds=[...document.getElementById("casePersons").selectedOptions].map(o=>o.value);
+ const old=id?db.cases.find(x=>x.id===id):null;
+ const data={id:id||uid("CASE"),title,date,time:caseTime.value,location:caseLocation.value,lat:caseLat.value,lng:caseLng.value,type:caseType.value,personIds,duration:caseDuration.value,weather:caseWeather.value,witnesses:Number(caseWitnesses.value)||0,status:caseStatus.value,reliability:caseReliability.value,description:caseDescription.value,timeline:caseTimeline.value,hypothesis:caseHypothesis.value,conclusion:caseConclusion.value,mediaIds:old?.mediaIds||[],created:old?.created||new Date().toISOString()};
+ if(id){const i=db.cases.findIndex(x=>x.id===id);db.cases[i]=data}else db.cases.push(data);
+ db.persons.forEach(p=>{p.caseIds=(p.caseIds||[]).filter(cid=>cid!==data.id); if(personIds.includes(p.id))p.caseIds=[...p.caseIds,data.id]});
+ const files=[...(document.getElementById("caseMediaInput").files||[])];
+ if(files.length){for(const file of files){const media=await storeCaseMedia(data.id,file);data.mediaIds.push(media.id)} const i=db.cases.findIndex(x=>x.id===data.id);db.cases[i].mediaIds=data.mediaIds}
+ saveDB();closeModal("caseModal");
+}
+
+function editCase(id){openCaseModal(id)}
+const MEDIA_DB_NAME="ufology_case_media";const MEDIA_STORE="media";
+function mediaDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(MEDIA_DB_NAME,1);r.onupgradeneeded=()=>{const dbx=r.result;if(!dbx.objectStoreNames.contains(MEDIA_STORE)){const st=dbx.createObjectStore(MEDIA_STORE,{keyPath:"id"});st.createIndex("caseId","caseId")}};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function storeCaseMedia(caseId,file){const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(file)});const item={id:uid("MED"),caseId,name:file.name,type:file.type,size:file.size,uploadedAt:new Date().toISOString(),data};const d=await mediaDB();await new Promise((resolve,reject)=>{const tx=d.transaction(MEDIA_STORE,"readwrite");tx.objectStore(MEDIA_STORE).put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});d.close();return item}
+async function getCaseMedia(ids){if(!ids?.length)return [];const d=await mediaDB();const out=[];for(const id of ids){const item=await new Promise((resolve,reject)=>{const r=d.transaction(MEDIA_STORE,"readonly").objectStore(MEDIA_STORE).get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});if(item)out.push(item)}d.close();return out}
+function mediaCard(m){const safeName=esc(m.name||"ფაილი"),date=m.uploadedAt?new Date(m.uploadedAt).toLocaleString("ka-GE"):"";let body="";if((m.type||"").startsWith("image/"))body=`<img src="${m.data}" alt="${safeName}">`;else if((m.type||"").startsWith("video/"))body=`<video controls playsinline src="${m.data}"></video>`;else body=`<div class="notice">📎 ${safeName}</div>`;return `<div class="mediaCard">${body}<p class="small">${safeName}<br>${esc(date)}</p><a class="btn" href="${m.data}" download="${safeName}">⬇️ ჩამოტვირთვა</a></div>`}
+async function renderCaseMediaPreview(ids){const box=document.getElementById("caseMediaPreview");if(!box)return;box.innerHTML="<div class='notice'>ატვირთული მასალა იტვირთება...</div>";try{const arr=await getCaseMedia(ids);box.innerHTML=arr.length?arr.map(mediaCard).join(""):"<div class='small'>ამ შემთხვევას ატვირთული ფოტო/ვიდეო ჯერ არ აქვს.</div>"}catch(e){box.innerHTML="<div class='dangerNote'>მასალის წაკითხვა ვერ მოხერხდა.</div>"}}
+async function renderCaseMediaInto(targetId,ids){const box=document.getElementById(targetId);if(!box)return;try{const arr=await getCaseMedia(ids);box.innerHTML=arr.length?arr.map(mediaCard).join(""):"<p>ატვირთული ფოტო/ვიდეო არ არის.</p>"}catch(e){box.innerHTML="<p>მასალის ჩატვირთვა ვერ მოხერხდა.</p>"}}
+async function handleCaseMedia(e){const files=[...(e.target.files||[])];const box=document.getElementById("caseMediaPreview");if(!files.length)return;box.innerHTML=files.map(f=>`<div class="mediaCard"><div class="notice">${f.type.startsWith("video/")?"🎥":"📷"} ${esc(f.name)}<br><span class="small">${(f.size/1024/1024).toFixed(1)} MB</span></div></div>`).join("")}
+function getCaseLocation(){if(!navigator.geolocation){alert("ამ მოწყობილობაზე GPS მხარდაჭერა არ არის.");return}navigator.geolocation.getCurrentPosition(pos=>{caseLat.value=pos.coords.latitude.toFixed(6);caseLng.value=pos.coords.longitude.toFixed(6);if(!caseLocation.value.trim())caseLocation.value="GPS მდებარეობა";renderCaseMapPreview()},err=>alert("მდებარეობის მიღება ვერ მოხერხდა: "+(err.message||"GPS შეცდომა")),{enableHighAccuracy:true,timeout:15000,maximumAge:0})}
+function renderCaseMapPreview(){const box=document.getElementById("caseMapPreview");if(!box)return;const lat=(document.getElementById("caseLat")?.value||"").trim(),lng=(document.getElementById("caseLng")?.value||"").trim();if(!lat||!lng||isNaN(Number(lat))||isNaN(Number(lng))){box.innerHTML="<div class='small'>GPS კოორდინატების შეყვანის შემდეგ აქ გამოჩნდება რუკა.</div>";return}const q=encodeURIComponent(lat+","+lng);box.innerHTML=`<div class="mapBox"><iframe loading="lazy" src="https://www.google.com/maps?q=${q}&output=embed"></iframe></div><div class="actions" style="margin-top:8px"><a class="btn" href="https://www.google.com/maps?q=${q}" target="_blank" rel="noopener">🗺️ Google Maps-ში გახსნა</a></div>`}
+
+async function deleteCase(id){if(confirm("ნამდვილად წავშალოთ შემთხვევა?")){const c=db.cases.find(x=>x.id===id);if(c?.mediaIds?.length){try{const d=await mediaDB();const tx=d.transaction(MEDIA_STORE,"readwrite");c.mediaIds.forEach(mid=>tx.objectStore(MEDIA_STORE).delete(mid));await new Promise(r=>tx.oncomplete=r);d.close()}catch(e){}}db.cases=db.cases.filter(x=>x.id!==id);db.evidence=db.evidence.filter(x=>x.caseId!==id);saveDB()}}
+async function viewCase(id){
+ const c=db.cases.find(x=>x.id===id);if(!c)return;
+ const ev=db.evidence.filter(e=>e.caseId===id);
+ document.getElementById("reportOutput").innerHTML=caseHTML(c,ev);
+ showPage("reports",document.querySelectorAll("nav button")[9]);
+ document.getElementById("reportCase").value=id;
+ await renderCaseMediaInto("caseReportMedia",c.mediaIds||[]);
+}
+
+function caseHTML(c,ev=[]){
+ return `<h2>🛸 ${esc(c.title)}</h2><p>${badge(c.status)} &nbsp; სანდოობა: <b>${esc(c.reliability)}</b></p>
+ <hr><p><b>შემთხვევის ნომერი:</b> ${esc(c.id)}</p><p><b>თარიღი/დრო:</b> ${esc(c.date)} ${esc(c.time)}</p>
+ <p><b>ადგილი:</b> ${esc(c.location)} | <b>GPS:</b> ${esc(c.lat)}, ${esc(c.lng)}</p><p><b>ფენომენი:</b> ${esc(c.type)} | <b>ხანგრძლივობა:</b> ${esc(c.duration)}</p>
+ <p><b>ამინდი:</b> ${esc(c.weather)} | <b>მოწმეები:</b> ${esc(c.witnesses)}</p>
+ <h3 class="sectiontitle">მოვლენის აღწერა</h3><p>${esc(c.description).replace(/\n/g,"<br>")||"—"}</p>
+ <h3 class="sectiontitle">ქრონოლოგია</h3><p>${esc(c.timeline).replace(/\n/g,"<br>")||"—"}</p>
+ <h3 class="sectiontitle">ჰიპოთეზა</h3><p>${esc(c.hypothesis).replace(/\n/g,"<br>")||"—"}</p>
+ <h3 class="sectiontitle">დასკვნა</h3><p>${esc(c.conclusion).replace(/\n/g,"<br>")||"—"}</p>
+ <h3 class="sectiontitle">📍 Google Maps მდებარეობა</h3>${c.lat&&c.lng?`<p><a href="https://www.google.com/maps?q=${encodeURIComponent(c.lat+","+c.lng)}" target="_blank" rel="noopener">🗺️ Google Maps-ში გახსნა</a></p><div class="mapBox"><iframe loading="lazy" src="https://www.google.com/maps?q=${encodeURIComponent(c.lat+","+c.lng)}&output=embed"></iframe></div>`:`<p>GPS კოორდინატები არ არის მითითებული.</p>`}<h3 class="sectiontitle">📷🎥 საველე ფოტო / ვიდეო</h3><div id="caseReportMedia" class="mediaPreviewGrid"><p>მასალა იტვირთება...</p></div><h3 class="sectiontitle">დაკავშირებული მასალები</h3>${ev.length?ev.map(e=>`<p>📎 <b>${esc(e.name)}</b> — ${esc(e.type)} — ${esc(e.file)}</p>`).join(""):"<p>მასალა არ არის.</p>"}`;
+}
+function renderPersons(){
+ const q=(document.getElementById("personSearch")?.value||"").toLowerCase();
+ const arr=db.persons.filter(p=>JSON.stringify(p).toLowerCase().includes(q));
+ document.getElementById("personsBody").innerHTML=arr.length?arr.map(p=>{
+   const linked=(p.caseIds||[]).map(id=>db.cases.find(c=>c.id===id)).filter(Boolean);
+   return `<tr><td>${p.photoData?`<img class="personThumb" src="${p.photoData}" alt="ფოტო">`:`—`}</td>
+   <td><b>${esc(p.first)} ${esc(p.last)}</b></td><td>${esc(p.personalId||"—")}</td><td>${esc(p.role||"—")}</td>
+   <td>${badge(p.polarity||"არ არის შეფასებული")}</td><td>${esc(p.birthDate||"—")} / ${esc(p.age||calcAge(p.birthDate)||"—")}</td><td>${esc(p.address||"—")}</td><td>${esc(p.place||"—")}</td>
+   <td>${linked.length?linked.map(c=>esc(c.title)).join("<br>"):"—"}</td>
+   <td>${policeAlertHTML(p,true)||"—"}</td>
+   <td><div class="actions"><button class="btn" onclick="viewPerson('${p.id}')">ნახვა</button><button class="btn" onclick="editPerson('${p.id}')">რედაქტირება</button><button class="btn danger" onclick="deletePerson('${p.id}')">წაშლა</button></div></td></tr>`
+ }).join(""):"<tr><td colspan='11' class='empty'>პიროვნება ვერ მოიძებნა</td></tr>";
+}
+function viewPerson(id){const p=db.persons.find(x=>x.id===id);if(!p)return;const linked=(p.caseIds||[]).map(cid=>db.cases.find(c=>c.id===cid)).filter(Boolean);const med=p.medical||{};const rels=(db.dnaRelations||[]).filter(r=>r.status==="დადასტურებულია"&&(r.personA===id||r.personB===id));document.getElementById("personViewTitle").textContent=`👤 ${p.first||""} ${p.last||""}`;document.getElementById("personViewBody").innerHTML=`<div style="text-align:center;margin-bottom:18px">${p.photoData?`<img class="personViewPhoto" src="${p.photoData}" alt="პიროვნების ფოტო">`:`<div class="empty">ფოტო არ არის</div>`}</div><p><b>Personal ID:</b> ${esc(p.personalId)}</p><p><b>როლი:</b> ${esc(p.role||"—")}</p><p><b>დაბადება / ასაკი:</b> ${esc(p.birthDate||"—")} / ${esc(p.age||calcAge(p.birthDate)||"—")}</p><p><b>პროფესია:</b> ${esc(p.profession||"—")} | <b>თანამდებობა:</b> ${esc(p.position||"—")}</p><p><b>ქალაქი/ქვეყანა:</b> ${esc(p.place||"—")}</p><p><b>ტელეფონები:</b> ${esc((p.phones||[]).join(", ")||"—")}</p><p><b>მისამართი:</b> ${esc(p.address||"—")}</p><h3 class="sectiontitle">🩺 სამედიცინო შეფასება</h3><p><b>ექიმი:</b> ${esc(med.doctorName||"—")} | <b>სპეციალობა:</b> ${esc(med.doctorProfession||"—")} | <b>კონტაქტი:</b> ${esc(med.doctorContact||"—")}</p><p><b>ჰალუცინაციები:</b> ${esc(med.hallucinations||"არ შემოწმებულა")}<br><b>ჯანმრთელობა:</b> ${esc(med.healthStatus||"არ შემოწმებულა")}<br><b>ფსიქიატრიული შემოწმება:</b> ${esc(med.psychiatricStatus||"არ ჩატარებულა")}</p><p><b>ექიმის დასკვნა:</b> ${esc(med.conclusion||"—").replace(/\n/g,"<br>")}</p><h3 class="sectiontitle">🧬 დადასტურებული ნათესაური კავშირები</h3>${rels.length?`<ul>${rels.map(r=>{const other=db.persons.find(x=>x.id===(r.personA===id?r.personB:r.personA));return `<li><b>${esc(other?other.first+" "+other.last:"უცნობი პიროვნება")}</b> — ${esc(r.relation||"ნათესაური კავშირი")} — ${esc(r.result||"დადასტურებულია")}</li>`}).join("")}</ul>`:`<p>დადასტურებული DNA ნათესაობა არ არის.</p>`}<p><b>რეგისტრაცია:</b> ${esc(p.registeredAt?new Date(p.registeredAt).toLocaleString("ka-GE"):"—")}</p><p><b>ფოტოს გადაღება/ატვირთვა:</b> ${esc(p.photoCapturedAt?new Date(p.photoCapturedAt).toLocaleString("ka-GE"):"—")}</p><p><b>დაკავშირებული შემთხვევები:</b> ${linked.length?linked.map(c=>esc(c.title)).join("<br>"):"—"}</p>${policeAlertHTML(p)}`;document.getElementById("personViewModal").classList.add("show")}
+function openPersonModal(id=null){
+ document.getElementById("personModalTitle").textContent=id?"პიროვნების რედაქტირება":"პიროვნების დამატება";
+ document.getElementById("personId").value=id||"";
+ ["personFirst","personLast","personPersonalId","personBirthDate","personDNA","personProfession","personPosition","personOrganization","personExpertise","personPlace","personContact","personStatement","personNotes","personIdDocNumber","personIdDocIssue","personIdDocExpiry","personIdDocAuthority","personDoctorName","personDoctorProfession","personDoctorContact","personMedicalDate","personMedicalDocNo","personMedicalConclusion"].forEach(x=>document.getElementById(x).value="");
+ document.getElementById("personRole").value="მოწმე";
+ document.getElementById("personReliability").value="უცნობია";
+ document.getElementById("personPolarity").value="არ არის შეფასებული";
+ document.getElementById("personBloodGroup").value="უცნობია";
+ document.getElementById("personIdDocType").value="პირადობის მოწმობა"; setPhones([]); updateAge(); personPhotoInput.value=""; personPhotoPreview.src=""; personPhotoPreview.style.display="none"; delete personPhotoPreview.dataset.data; personPhotoInfo.textContent="ფოტო არ არის არჩეული";
+ if(id){
+   const p=db.persons.find(x=>x.id===id); if(!p)return;
+   const map=[["personFirst","first"],["personLast","last"],["personPersonalId","personalId"],["personDNA","dna"],["personProfession","profession"],["personPosition","position"],["personOrganization","organization"],["personExpertise","expertise"],["personPlace","place"],["personContact","contact"],["personStatement","statement"],["personNotes","notes"],["personIdDocNumber","idDocNumber"],["personIdDocIssue","idDocIssue"],["personIdDocExpiry","idDocExpiry"],["personIdDocAuthority","idDocAuthority"]];
+   map.forEach(([a,b])=>document.getElementById(a).value=p[b]||"");
+   personBirthDate.value=p.birthDate||""; updateAge(); setPhones(p.phones||[]); personAddress.value=p.address||""; personGoogleLocation.value=p.googleLocation||"";
+   personRole.value=p.role||"მოწმე"; personReliability.value=p.reliability||"უცნობია";
+   const med=p.medical||{};personDoctorName.value=med.doctorName||"";personDoctorProfession.value=med.doctorProfession||"";personDoctorContact.value=med.doctorContact||"";personHallucinations.value=med.hallucinations||"არ შემოწმებულა";personHealthStatus.value=med.healthStatus||"არ შემოწმებულა";personPsychiatricStatus.value=med.psychiatricStatus||"არ ჩატარებულა";personMedicalDate.value=med.medicalDate||"";personMedicalDocNo.value=med.docNo||"";personMedicalConclusion.value=med.conclusion||"";
+   personPolarity.value=p.polarity||"არ არის შეფასებული"; personBloodGroup.value=p.bloodGroup||"უცნობია"; personIdDocType.value=p.idDocType||"პირადობის მოწმობა"; if(p.photoData){personPhotoPreview.src=p.photoData;personPhotoPreview.style.display="block";personPhotoPreview.dataset.data=p.photoData;personPhotoInfo.textContent="არსებული ფოტო";}
+ }
+ document.getElementById("personModal").classList.add("show");
+}
+function savePerson(){
+ const first=personFirst.value.trim(),last=personLast.value.trim(),personalId=personPersonalId.value.trim(),birthDate=personBirthDate.value;
+ if(!first||!last||!personalId){alert("სახელი, გვარი და Personal ID აუცილებელია.");return}
+ const duplicate=db.persons.find(p=>p.personalId===personalId && p.id!==personId.value);
+ if(duplicate){
+   if(!confirm("ეს Personal ID უკვე არსებობს. მონაცემები არსებული პიროვნების ჩანაწერს დაუკავშირდეს/განახლდეს?")) return;
+   // Merge into the existing unique person record.
+   const merged={
+     ...duplicate, first,last,personalId,
+     role:personRole.value, birthDate, age:calcAge(birthDate), phones:getPhones(), address:personAddress.value, googleLocation:personGoogleLocation.value, polarity:personPolarity.value, bloodGroup:personBloodGroup.value, dna:personDNA.value, fingerprintTrace:personFingerprint.value.trim(), profession:personProfession.value, position:personPosition.value, organization:personOrganization.value, expertise:personExpertise.value,
+     place:personPlace.value, contact:personContact.value, reliability:personReliability.value,
+     statement:personStatement.value, notes:personNotes.value,
+     idDocType:personIdDocType.value, idDocNumber:personIdDocNumber.value, idDocIssue:personIdDocIssue.value,
+     idDocExpiry:personIdDocExpiry.value, idDocAuthority:personIdDocAuthority.value,
+     photoData:personPhotoPreview.dataset.data||duplicate.photoData||"",photoCapturedAt:personPhotoPreview.dataset.data?new Date().toISOString():(duplicate.photoCapturedAt||""),registeredAt:duplicate.registeredAt||new Date().toISOString(),
+     caseIds:[...new Set([...(duplicate.caseIds||[]),...(personId.value?(db.persons.find(x=>x.id===personId.value)?.caseIds||[]):[])])]
+   };
+   db.persons[db.persons.findIndex(x=>x.id===duplicate.id)]=merged;
+   if(personId.value && personId.value!==duplicate.id) db.persons=db.persons.filter(x=>x.id!==personId.value);
+   db.cases.forEach(c=>{if((c.personIds||[]).includes(personId.value)) c.personIds=[...new Set(c.personIds.map(x=>x===personId.value?duplicate.id:x))]});
+   saveDB();closeModal("personModal");return;
+ }
+ const id=personId.value||uid("PER");
+ const old=db.persons.find(x=>x.id===id);
+ const p={id,first,last,personalId,role:personRole.value,polarity:personPolarity.value,bloodGroup:personBloodGroup.value,dna:personDNA.value,fingerprintTrace:personFingerprint.value.trim(),profession:personProfession.value,position:personPosition.value,organization:personOrganization.value,expertise:personExpertise.value,
+ place:personPlace.value,contact:personContact.value,reliability:personReliability.value,statement:personStatement.value,notes:personNotes.value,
+ idDocType:personIdDocType.value,idDocNumber:personIdDocNumber.value,idDocIssue:personIdDocIssue.value,idDocExpiry:personIdDocExpiry.value,idDocAuthority:personIdDocAuthority.value,
+ medical:{doctorName:personDoctorName.value,doctorProfession:personDoctorProfession.value,doctorContact:personDoctorContact.value,hallucinations:personHallucinations.value,healthStatus:personHealthStatus.value,psychiatricStatus:personPsychiatricStatus.value,medicalDate:personMedicalDate.value,docNo:personMedicalDocNo.value,conclusion:personMedicalConclusion.value},
+ caseIds:old?.caseIds||[],photoData:personPhotoPreview.dataset.data||old?.photoData||"",photoCapturedAt:personPhotoPreview.dataset.data?new Date().toISOString():(old?.photoCapturedAt||""),registeredAt:old?.registeredAt||new Date().toISOString(),fieldCaseId:old?.fieldCaseId||""};
+ if(old) db.persons[db.persons.findIndex(x=>x.id===id)]=p; else db.persons.push(p);
+ saveDB();closeModal("personModal")
+}
+function editPerson(id){openPersonModal(id)}
+function deletePerson(id){
+ if(confirm("წავშალოთ პიროვნება?")){db.persons=db.persons.filter(x=>x.id!==id);db.cases.forEach(c=>{c.personIds=(c.personIds||[]).filter(x=>x!==id)});db.familyRelations=db.familyRelations.filter(r=>r.personA!==id&&r.personB!==id);db.dnaRelations=db.dnaRelations.filter(r=>r.personA!==id&&r.personB!==id);saveDB()}
+}
+
+
+function personName(id){const p=db.persons.find(x=>x.id===id);return p?`${p.first||""} ${p.last||""}`.trim():"უცნობი პიროვნება"}
+function renderMedical(){const sel=document.getElementById("medicalPersonFilter");if(sel){const old=sel.value;sel.innerHTML='<option value="">ყველა პიროვნება</option>'+db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId||"")}</option>`).join("");if(db.persons.some(p=>p.id===old))sel.value=old}const filter=sel?.value||"";const arr=db.persons.filter(p=>!filter||p.id===filter);document.getElementById("medicalBody").innerHTML=arr.length?arr.map(p=>{const m=p.medical||{};const file=m.fileData?`<button class="btn" onclick="openMedicalReport('${p.id}')">📎 ${esc(m.fileName||"ფაილის ნახვა")}</button>`:"—";const conclusion=m.conclusion?`<button class="btn" onclick="openMedicalReport('${p.id}')">📄 დასკვნის ნახვა</button>`:"—";return `<tr><td><b>${esc(p.first)} ${esc(p.last)}</b><br><span class="small">${esc(p.personalId||"")}</span></td><td>${esc(m.doctorName||"—")}</td><td>${esc(m.doctorProfession||"—")}</td><td>${esc(m.hallucinations||"არ არის მონაცემი")}</td><td>${esc(m.healthStatus||"არ არის მონაცემი")}</td><td>${esc(m.psychiatricStatus||"არ არის მონაცემი")}</td><td>${esc(m.bloodGroup||p.bloodGroup||"უცნობია")}</td><td>${conclusion}</td><td>${file}</td><td>${esc(m.enteredBy||"—")}<br><span class="small">${esc(m.enteredAt?new Date(m.enteredAt).toLocaleString("ka-GE"):"")}</span></td><td><button class="btn" onclick="openMedicalModal('${p.id}')">✏️ შეცვლა</button></td></tr>`}).join(""):`<tr><td colspan="11" class="empty">პიროვნება ვერ მოიძებნა</td></tr>`}
+let currentMedicalReportPersonId="";
+function openMedicalReport(personId){const p=db.persons.find(x=>x.id===personId);if(!p)return;const m=p.medical||{};currentMedicalReportPersonId=personId;const fmt=v=>v?new Date(v).toLocaleString("ka-GE"):"—";document.getElementById("medicalReportContent").innerHTML=`<div class="card" style="margin:0"><h3 style="margin-top:0">👤 ${esc(p.first||"")} ${esc(p.last||"")}</h3><p><b>Personal ID:</b> ${esc(p.personalId||"—")}</p><hr><div class="formgrid"><div><b>ექიმი:</b><br>${esc(m.doctorName||"—")}</div><div><b>პროფესია / სპეციალობა:</b><br>${esc(m.doctorProfession||"—")}</div><div><b>საკონტაქტო:</b><br>${esc(m.doctorContact||"—")}</div><div><b>სისხლის ჯგუფი:</b><br>${esc(m.bloodGroup||p.bloodGroup||"უცნობია")}</div><div><b>ჰალუცინაციებთან დაკავშირებული ჩანაწერი:</b><br>${esc(m.hallucinations||"არ არის მონაცემი")}</div><div><b>ჯანმრთელობის მდგომარეობა:</b><br>${esc(m.healthStatus||"არ არის მონაცემი")}</div><div><b>ფსიქიატრიული შემოწმება:</b><br>${esc(m.psychiatricStatus||"არ არის მონაცემი")}</div><div><b>დასკვნის თარიღი:</b><br>${esc(m.medicalDate||"—")}</div><div><b>დოკუმენტის ნომერი:</b><br>${esc(m.docNo||"—")}</div><div><b>შეიყვანა:</b><br>${esc(m.enteredBy||"—")}</div><div><b>შეყვანის დრო:</b><br>${esc(fmt(m.enteredAt))}</div></div><hr><h3>📋 ექიმის / სპეციალისტის დასკვნა</h3><div class="resultBox" style="white-space:pre-wrap">${esc(m.conclusion||"დასკვნის ტექსტი არ არის შეტანილი.")}</div><h3>📝 წყარო / შენიშვნა</h3><div class="resultBox" style="white-space:pre-wrap">${esc(m.sourceNote||"—")}</div></div>`;const fbox=document.getElementById("medicalReportFile"),preview=document.getElementById("medicalReportPreview");preview.innerHTML="";if(m.fileData){fbox.innerHTML=`<div class="successNote">📎 <b>${esc(m.fileName||"ატვირთული დოკუმენტი")}</b><br><span class="small">ატვირთულია: ${esc(fmt(m.fileUploadedAt))}</span></div>`;const name=(m.fileName||"").toLowerCase();if(name.endsWith(".pdf")){preview.innerHTML=`<iframe src="${m.fileData}" style="width:100%;height:600px;border:1px solid #ccc;border-radius:8px"></iframe>`}else if(m.fileData.startsWith("data:image/")){preview.innerHTML=`<img src="${m.fileData}" style="max-width:100%;max-height:650px;display:block;margin:auto;border-radius:8px">`}else{preview.innerHTML='<div class="notice">ამ ტიპის დოკუმენტის პირდაპირი ჩვენება ბრაუზერში ვერ ხერხდება. გამოიყენეთ „ფაილის ჩამოტვირთვა“.</div>'}}else{fbox.innerHTML='<div class="notice">📎 ატვირთული ფაილი არ არის.</div>'}document.getElementById("medicalReportModal").classList.add("show")}
+function downloadMedicalReportFile(){const p=db.persons.find(x=>x.id===currentMedicalReportPersonId),m=p?.medical||{};if(!m.fileData){alert("ატვირთული ფაილი არ არსებობს.");return}const a=document.createElement("a");a.href=m.fileData;a.download=m.fileName||"medical-document";document.body.appendChild(a);a.click();a.remove()}
+function printMedicalReport(){const p=db.persons.find(x=>x.id===currentMedicalReportPersonId);if(!p)return;const m=p.medical||{};const w=window.open("","_blank","width=900,height=900");if(!w){alert("ბეჭდვის ფანჯარა დაბლოკილია. დაუშვით pop-up ფანჯრები.");return}const val=v=>esc(v||"—");w.document.write(`<!doctype html><html lang="ka"><head><meta charset="utf-8"><title>სამედიცინო დასკვნა — ${val(p.first)} ${val(p.last)}</title><style>body{font-family:Arial,sans-serif;padding:35px;line-height:1.5;color:#111}h1{font-size:22px}h2{font-size:17px;border-bottom:1px solid #aaa;padding-bottom:5px}.row{margin:8px 0}.label{font-weight:bold}.box{border:1px solid #aaa;padding:15px;white-space:pre-wrap;border-radius:6px}.meta{color:#555;font-size:12px} @media print{body{padding:15px}}</style></head><body><h1>სამედიცინო / სპეციალისტის დასკვნის ჩანაწერი</h1><div class="row"><span class="label">პიროვნება:</span> ${val(p.first)} ${val(p.last)}</div><div class="row"><span class="label">Personal ID:</span> ${val(p.personalId)}</div><h2>სამედიცინო მონაცემები</h2><div class="row"><span class="label">ექიმი:</span> ${val(m.doctorName)}</div><div class="row"><span class="label">პროფესია / სპეციალობა:</span> ${val(m.doctorProfession)}</div><div class="row"><span class="label">საკონტაქტო:</span> ${val(m.doctorContact)}</div><div class="row"><span class="label">სისხლის ჯგუფი:</span> ${val(m.bloodGroup||p.bloodGroup)}</div><div class="row"><span class="label">ჰალუცინაციებთან დაკავშირებული ჩანაწერი:</span> ${val(m.hallucinations)}</div><div class="row"><span class="label">ჯანმრთელობის მდგომარეობა:</span> ${val(m.healthStatus)}</div><div class="row"><span class="label">ფსიქიატრიული შემოწმება:</span> ${val(m.psychiatricStatus)}</div><div class="row"><span class="label">დასკვნის თარიღი:</span> ${val(m.medicalDate)}</div><div class="row"><span class="label">დოკუმენტის ნომერი:</span> ${val(m.docNo)}</div><h2>ექიმის / სპეციალისტის დასკვნა</h2><div class="box">${val(m.conclusion)}</div><h2>წყარო / შენიშვნა</h2><div class="box">${val(m.sourceNote)}</div><p class="meta">მონაცემი შეიყვანა: ${val(m.enteredBy)} | დრო: ${val(m.enteredAt?new Date(m.enteredAt).toLocaleString("ka-GE"):"")}</p>${m.fileName?`<p class="meta">დართული ფაილი: ${val(m.fileName)}</p>`:""}</body></html>`);w.document.close();w.focus();setTimeout(()=>w.print(),300)}
+function checkMedicalPerson(){const id=document.getElementById("medicalIdSearch").value.trim();const box=document.getElementById("medicalMatch");if(!id){box.style.display="none";return}const p=db.persons.find(x=>x.personalId===id);box.style.display="block";box.className=p?"successNote":"dangerNote";box.innerHTML=p?`✅ Personal ID ნაპოვნია: <b>${esc(personName(p.id))}</b>. შეგიძლიათ გახსნათ მისი სამედიცინო მონაცემები და ატვირთოთ დოკუმენტი.`:`❌ ასეთი Personal ID პიროვნებების ბაზაში ვერ მოიძებნა. ჯერ დაამატეთ პიროვნება.`;if(p)box.innerHTML+=` <button class="btn" style="margin-left:8px" onclick="openMedicalModal('${p.id}')">🩺 გახსნა</button>`}
+function openMedicalModal(personId=""){["medicalEditPersonId","medicalTargetId","medicalDoctorName","medicalDoctorProfession","medicalDoctorContact","medicalDate","medicalDocNo","medicalEnteredBy","medicalConclusion","medicalSourceNote"].forEach(id=>document.getElementById(id).value="");medicalBloodGroup.value="უცნობია";medicalHallucinations.value="არ არის მონაცემი";medicalHealthStatus.value="არ არის მონაცემი";medicalPsychiatricStatus.value="არ არის მონაცემი";medicalFileInput.value="";medicalFileInfo.textContent="ფაილი არ არის არჩეული";document.getElementById("medicalFileLink").innerHTML="";document.getElementById("medicalTargetNotice").style.display="none";const now=new Date();medicalEnteredAt.value=new Date(now-now.getTimezoneOffset()*60000).toISOString().slice(0,16);if(personId){const p=db.persons.find(x=>x.id===personId);if(!p)return;const m=p.medical||{};medicalEditPersonId.value=p.id;medicalTargetId.value=p.personalId||"";medicalDoctorName.value=m.doctorName||"";medicalDoctorProfession.value=m.doctorProfession||"";medicalDoctorContact.value=m.doctorContact||"";medicalBloodGroup.value=m.bloodGroup||p.bloodGroup||"უცნობია";medicalHallucinations.value=m.hallucinations||"არ არის მონაცემი";medicalHealthStatus.value=m.healthStatus||"არ არის მონაცემი";medicalPsychiatricStatus.value=m.psychiatricStatus||"არ არის მონაცემი";medicalDate.value=m.medicalDate||"";medicalDocNo.value=m.docNo||"";medicalEnteredBy.value=m.enteredBy||"";medicalEnteredAt.value=m.enteredAt?new Date(new Date(m.enteredAt).getTime()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):medicalEnteredAt.value;medicalConclusion.value=m.conclusion||"";medicalSourceNote.value=m.sourceNote||"";if(m.fileData){document.getElementById("medicalFileLink").innerHTML=`📎 <a href="${m.fileData}" download="${esc(m.fileName||'medical-document')}">${esc(m.fileName||"ატვირთული დოკუმენტი")}</a>`;medicalFileInfo.textContent="არსებული ფაილი შენახულია"}}document.getElementById("medicalModal").classList.add("show");checkMedicalModalPerson()}
+function checkMedicalModalPerson(){const id=document.getElementById("medicalTargetId").value.trim();const box=document.getElementById("medicalTargetNotice");if(!id){box.style.display="none";return}const p=db.persons.find(x=>x.personalId===id);box.style.display="block";box.className=p?"successNote":"dangerNote";box.innerHTML=p?`✅ დაკავშირებულია: <b>${esc(personName(p.id))}</b>`:`❌ Personal ID ბაზაში ვერ მოიძებნა. სამედიცინო მონაცემების შენახვა შეუძლებელია.`;if(p)medicalEditPersonId.value=p.id;else medicalEditPersonId.value=""}
+function handleMedicalFile(e){const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){alert("V1-ში ერთი სამედიცინო ფაილის მაქსიმალური ზომა არის 2 MB. დიდი დოკუმენტებისთვის საჭიროა Supabase Storage.");e.target.value="";return}const r=new FileReader();r.onload=()=>{window._medicalFileData=r.result;window._medicalFileName=f.name;document.getElementById("medicalFileInfo").textContent=`არჩეულია: ${f.name} (${Math.round(f.size/1024)} KB)`};r.onerror=()=>alert("ფაილის წაკითხვა ვერ მოხერხდა.");r.readAsDataURL(f)}
+function saveMedicalData(){const personalId=medicalTargetId.value.trim();const p=db.persons.find(x=>x.personalId===personalId);if(!p){alert("ამ Personal ID-ით პიროვნება ვერ მოიძებნა. ჯერ დაამატეთ პიროვნება.");return}const old=p.medical||{};const m={...old,doctorName:medicalDoctorName.value.trim(),doctorProfession:medicalDoctorProfession.value.trim(),doctorContact:medicalDoctorContact.value.trim(),bloodGroup:medicalBloodGroup.value,hallucinations:medicalHallucinations.value,healthStatus:medicalHealthStatus.value,psychiatricStatus:medicalPsychiatricStatus.value,medicalDate:medicalDate.value,docNo:medicalDocNo.value.trim(),enteredBy:medicalEnteredBy.value.trim(),enteredAt:medicalEnteredAt.value?new Date(medicalEnteredAt.value).toISOString():new Date().toISOString(),conclusion:medicalConclusion.value,sourceNote:medicalSourceNote.value};if(window._medicalFileData){m.fileData=window._medicalFileData;m.fileName=window._medicalFileName;m.fileUploadedAt=new Date().toISOString();window._medicalFileData="";window._medicalFileName=""}p.medical=m;if(m.bloodGroup&&m.bloodGroup!=="უცნობია")p.bloodGroup=m.bloodGroup;saveDB();closeModal("medicalModal");alert("სამედიცინო მონაცემები Personal ID-ს დაუკავშირდა.")}
+
+function openDnaModal(){fillDnaPersons();["dnaDate","dnaLab","dnaResult","dnaNotes"].forEach(id=>document.getElementById(id).value="");dnaRelation.value="მშობელი / შვილი";dnaStatus.value="დადასტურებულია";dnaA.value="";dnaB.value="";document.getElementById("dnaModal").classList.add("show")}
+function fillDnaPersons(){const html=db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId||"")}</option>`).join("");dnaA.innerHTML='<option value="">— აირჩიეთ —</option>'+html;dnaB.innerHTML='<option value="">— აირჩიეთ —</option>'+html}
+function saveDna(){const a=dnaA.value,b=dnaB.value;if(!a||!b||a===b){alert("აირჩიეთ ორი განსხვავებული პიროვნება.");return}const rel=db.dnaRelations.find(r=>(r.personA===a&&r.personB===b)||(r.personA===b&&r.personB===a));const item={id:rel?.id||uid("DNA"),personA:a,personB:b,relation:dnaRelation.value,status:dnaStatus.value,testDate:dnaDate.value,lab:dnaLab.value,result:dnaResult.value,notes:dnaNotes.value};if(rel)db.dnaRelations[db.dnaRelations.findIndex(x=>x.id===rel.id)]=item;else db.dnaRelations.push(item);saveDB();closeModal("dnaModal")}
+function renderDna(){document.getElementById("dnaBody").innerHTML=db.dnaRelations.length?db.dnaRelations.map(r=>`<tr><td>${esc(personName(r.personA))}</td><td>${esc(personName(r.personB))}</td><td>${esc(r.relation||"—")}</td><td>${esc(r.status||"—")}</td><td>${esc(r.testDate||"—")}</td><td>${esc(r.lab||"—")}</td><td>${esc(r.result||"—")}</td><td><button class="btn danger" onclick="deleteDna('${r.id}')">წაშლა</button></td></tr>`).join(""):`<tr><td colspan="8" class="empty">DNA ნათესაობის ჩანაწერები არ არის</td></tr>`}
+function deleteDna(id){if(confirm("წავშალოთ DNA ჩანაწერი?")){db.dnaRelations=db.dnaRelations.filter(r=>r.id!==id);saveDB()}}
+function openMissingModal(id=null){["missingId","missingFirst","missingLast","missingPersonalId","missingDate","missingLastPlace","missingDescription","missingFoundDate","missingFoundPlace","missingNotes","missingPoliceCaseNo","missingPoliceAuthority","missingDNA","missingFingerprint"].forEach(x=>document.getElementById(x).value="");missingRegistryType.value="დაკარგული პირი";missingStatus.value="დაკარგულია";missingLinkedPerson.value="";missingPhotoInput.value="";missingPhotoPreview.src="";missingPhotoPreview.style.display="none";delete missingPhotoPreview.dataset.data;document.getElementById("missingMatch").innerHTML="";if(id){const m=db.missingPersons.find(x=>x.id===id);if(!m)return;missingId.value=m.id;missingFirst.value=m.first||"";missingLast.value=m.last||"";missingPersonalId.value=m.personalId||"";missingDate.value=m.dateMissing||"";missingLastPlace.value=m.lastPlace||"";missingDescription.value=m.description||"";missingRegistryType.value=m.registryType||"დაკარგული პირი";missingPoliceCaseNo.value=m.policeCaseNo||"";missingPoliceAuthority.value=m.policeAuthority||"";missingDNA.value=m.dnaRef||"";missingFingerprint.value=m.fingerprintRef||"";missingStatus.value=m.status||"დაკარგულია";missingFoundDate.value=m.foundDate||"";missingFoundPlace.value=m.foundPlace||"";missingLinkedPerson.value=m.linkedPersonId||"";missingNotes.value=m.notes||"";if(m.photoData){missingPhotoPreview.src=m.photoData;missingPhotoPreview.style.display="block";missingPhotoPreview.dataset.data=m.photoData}}checkMissingMatch();document.getElementById("missingModal").classList.add("show")}
+function handleMissingPhoto(e){const f=e.target.files?.[0];if(!f)return;compressImage(f).then(data=>{missingPhotoPreview.src=data;missingPhotoPreview.style.display="block";missingPhotoPreview.dataset.data=data}).catch(()=>alert("ფოტოს დამუშავება ვერ მოხერხდა."))}
+function checkMissingMatch(){
+ const id=normalizeMatch(missingPersonalId.value),dna=normalizeMatch(missingDNA.value),fp=normalizeMatch(missingFingerprint.value);const box=document.getElementById("missingMatch");const matches=[];
+ db.persons.forEach(p=>{const hit=[];if(id&&normalizeMatch(p.personalId)===id)hit.push("Personal ID");if(dna&&normalizeMatch(p.dna)===dna)hit.push("DNA");if(fp&&normalizeMatch(p.fingerprintTrace)===fp)hit.push("თითის ანაბეჭდი");if(hit.length)matches.push({p,hit})});
+ if(matches.length){box.className="dangerNote";box.innerHTML=`🚨 <b>გაფრთხილება — შესაძლო დამთხვევა</b>${matches.map(x=>`<div style="margin-top:7px">${esc(x.p.first)} ${esc(x.p.last)} — ID: ${esc(x.p.personalId||"—")} — დამთხვევა: <b>${esc(x.hit.join(", "))}</b> <button class="btn warn" onclick="viewPerson('${x.p.id}')">პიროვნების ნახვა</button></div>`).join("")}<div class="small" style="margin-top:8px">დამთხვევა ავტომატურად არ ნიშნავს საბოლოო იდენტიფიკაციას.</div>`;
+ }else{box.className="resultBox";box.innerHTML=(id||dna||fp)?"ℹ️ Personal ID / DNA / ანაბეჭდის ზუსტი დამთხვევა ამ ბაზაში ვერ მოიძებნა.":""}
+}
+function saveMissing(){
+ const first=missingFirst.value.trim(),last=missingLast.value.trim();if(!first||!last){alert("სახელი და გვარი აუცილებელია.");return}
+ const item={id:missingId.value||uid("MIS"),first,last,personalId:missingPersonalId.value.trim(),registryType:missingRegistryType.value,policeCaseNo:missingPoliceCaseNo.value.trim(),policeAuthority:missingPoliceAuthority.value.trim(),dnaRef:missingDNA.value.trim(),fingerprintRef:missingFingerprint.value.trim(),dateMissing:missingDate.value,lastPlace:missingLastPlace.value,description:missingDescription.value,status:missingStatus.value,foundDate:missingFoundDate.value,foundPlace:missingFoundPlace.value,linkedPersonId:missingLinkedPerson.value,notes:missingNotes.value,photoData:missingPhotoPreview.dataset.data||"",updatedAt:new Date().toISOString()};
+ const i=db.missingPersons.findIndex(x=>x.id===item.id);if(i>=0)db.missingPersons[i]=item;else db.missingPersons.push(item);saveDB();closeModal("missingModal");
+ const hits=item.personalId||item.dnaRef||item.fingerprintRef?db.persons.filter(p=>(item.personalId&&normalizeMatch(p.personalId)===normalizeMatch(item.personalId))||(item.dnaRef&&normalizeMatch(p.dna)===normalizeMatch(item.dnaRef))||(item.fingerprintRef&&normalizeMatch(p.fingerprintTrace)===normalizeMatch(item.fingerprintRef))):[];
+ if(hits.length)alert(`🚨 გაფრთხილება: რეესტრის ჩანაწერს დაემთხვა ${hits.length} პიროვნების ჩანაწერი. გახსენით „პიროვნებები“ და შეამოწმეთ გამაფრთხილებელი ნიშანი.`);
+}
+function renderMissing(){
+ const q=(missingSearch.value||"").toLowerCase(),st=missingStatusFilter.value;const arr=db.missingPersons.filter(m=>(!st||m.status===st)&&JSON.stringify(m).toLowerCase().includes(q));
+ document.getElementById("missingBody").innerHTML=arr.length?arr.map(m=>{const p=m.linkedPersonId?db.persons.find(x=>x.id===m.linkedPersonId):null;const hits=db.persons.flatMap(person=>{const h=[];if(m.personalId&&normalizeMatch(person.personalId)===normalizeMatch(m.personalId))h.push("Personal ID");if(m.dnaRef&&normalizeMatch(person.dna)===normalizeMatch(m.dnaRef))h.push("DNA");if(m.fingerprintRef&&normalizeMatch(person.fingerprintTrace)===normalizeMatch(m.fingerprintRef))h.push("თითის ანაბეჭდი");return h.length?[{person,hit:h}]:[]});return `<tr><td>${hits.length?`🚨 <b>${hits.length}</b>`:"—"}</td><td>${m.photoData?`<img class="personThumb" src="${m.photoData}" alt="ფოტო">`:"—"}</td><td><b>${esc(m.first)} ${esc(m.last)}</b></td><td>${esc(m.personalId||"—")}</td><td>${esc(m.registryType||"დაკარგული პირი")} ${m.policeCaseNo?`<br><span class="small">საქმე № ${esc(m.policeCaseNo)}</span>`:""}</td><td>${esc(m.dateMissing||"—")}</td><td>${esc(m.lastPlace||"—")}</td><td>${esc(m.status||"—")}</td><td>${hits.length?`<div class="dangerNote">🚨 ${hits.map(h=>`<b>${esc(personName(h.person.id))}</b> — ${esc(h.hit.join(", "))}`).join("<br>")}</div>`:p?`დაკავშირებული პირი: <b>${esc(personName(p.id))}</b>`:`—`}</td><td><div class="actions"><button class="btn" onclick="openMissingModal('${m.id}')">რედაქტირება</button><button class="btn warn" onclick="checkMissingRecord('${m.id}')">🔎 შემოწმება</button><button class="btn danger" onclick="deleteMissing('${m.id}')">წაშლა</button></div></td></tr>`}).join(""):`<tr><td colspan="10" class="empty">ჩანაწერი ვერ მოიძებნა</td></tr>`
+}
+function checkMissingRecord(id){const m=db.missingPersons.find(x=>x.id===id);if(!m)return;const hits=db.persons.flatMap(p=>{const h=[];if(m.personalId&&normalizeMatch(p.personalId)===normalizeMatch(m.personalId))h.push("Personal ID");if(m.dnaRef&&normalizeMatch(p.dna)===normalizeMatch(m.dnaRef))h.push("DNA");if(m.fingerprintRef&&normalizeMatch(p.fingerprintTrace)===normalizeMatch(m.fingerprintRef))h.push("თითის ანაბეჭდი");return h.length?[{p,h}]:[]});if(hits.length){m.linkedPersonId=hits[0].p.id;saveDB();alert(`🚨 დამთხვევა ნაპოვნია: ${hits.map(x=>personName(x.p.id)+" — "+x.h.join(", ")).join(" | ")}\n\nეს არის გაფრთხილება; საბოლოო იდენტიფიკაცია კომპეტენტურმა პირმა/უწყებამ უნდა დაადასტუროს.`)}else alert("Personal ID / DNA / ანაბეჭდის ზუსტი დამთხვევა ვერ მოიძებნა.")}
+function deleteMissing(id){if(confirm("წავშალოთ დაკარგული პირის ჩანაწერი?")){db.missingPersons=db.missingPersons.filter(x=>x.id!==id);saveDB()}}
+
+function familyRelationLabel(r){const m={parent:"მშობელი → შვილი",child:"შვილი → მშობელი",sibling:"და / ძმა",grandparent:"ბებია / ბაბუა → შვილიშვილი",grandchild:"შვილიშვილი → ბებია / ბაბუა",uncle:"ბიძა / დეიდა → დისშვილი / ძმისშვილი",cousin:"ბიძაშვილი",spouse:"მეუღლე",other:"სხვა ნათესაობა"};return m[r]||r||"ნათესაობა"}
+function familyDisplayRelation(r,fromA=true){return familyRelationLabel(r.relation)}
+function fillFamilyPersons(selected=""){
+ const html=db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId||"")}</option>`).join("");
+ const a=document.getElementById("familyA"); if(a){a.innerHTML='<option value="">— აირჩიეთ —</option>'+html;if(selected)a.value=selected}
+ const f=document.getElementById("genealogyPersonFilter");if(f){const old=f.value;f.innerHTML='<option value="">აირჩიეთ პიროვნება — სრული ხე</option>'+html;f.value=selected||old||""}
+}
+function openFamilyModal(id=null){
+ document.getElementById("familyId").value=id||"";fillFamilyPersons();familyBId.value="";familyBMatch.innerHTML="";familyRelation.value="parent";familySource.value="უფოლოგის/მკვლევრის ჩანაწერი";familyNotes.value="";
+ if(id){const r=db.familyRelations.find(x=>x.id===id);if(!r)return;familyA.value=r.personA||"";familyBId.value=db.persons.find(x=>x.id===r.personB)?.personalId||"";familyRelation.value=r.relation||"parent";familySource.value=r.source||"უფოლოგის/მკვლევრის ჩანაწერი";familyNotes.value=r.notes||"";findFamilyPersonById()}
+ document.getElementById("familyModal").classList.add("show")
+}
+function findFamilyPersonById(){
+ const id=normalizeMatch(familyBId.value),box=document.getElementById("familyBMatch");
+ if(!id){box.innerHTML="";return}
+ const p=db.persons.find(x=>normalizeMatch(x.personalId)===id);
+ if(p){box.className="matchFound";box.innerHTML=`✅ <b>პიროვნება უკვე არსებობს ბაზაში</b><br>${esc(p.first)} ${esc(p.last)} — <span class="linkedId">${esc(p.personalId||"")}</span><br><button type="button" class="btn" style="margin-top:7px" onclick="familyBId.value='${esc(p.personalId||"")}';document.getElementById('familyBMatch').dataset.personId='${p.id}'">ამ ჩანაწერის მიბმა</button>`;box.dataset.personId=p.id}else{box.className="matchMissing";box.innerHTML=`⚠️ ამ Personal ID-ით პიროვნება ჯერ არ მოიძებნა. ჯერ დაამატეთ პიროვნება „პიროვნებების“ განყოფილებაში.`;delete box.dataset.personId}
+}
+function saveFamilyRelation(){
+ const a=familyA.value,id=normalizeMatch(familyBId.value);if(!a||!id){alert("აირჩიეთ პიროვნება A და შეიყვანეთ პიროვნება B-ის Personal ID.");return}
+ const b=db.persons.find(p=>normalizeMatch(p.personalId)===id);if(!b){alert("ამ Personal ID-ით პიროვნება ბაზაში ვერ მოიძებნა. ახალი პიროვნება ჯერ „პიროვნებების“ განყოფილებაში დაამატეთ.");return}if(a===b.id){alert("ერთი და იგივე პიროვნების საკუთარ თავთან დაკავშირება შეუძლებელია.");return}
+ const existing=db.familyRelations.find(r=>((r.personA===a&&r.personB===b.id)||(r.personA===b.id&&r.personB===a))&&r.relation===familyRelation.value);
+ const item={id:existing?.id||uid("FAM"),personA:a,personB:b.id,relation:familyRelation.value,source:familySource.value,notes:familyNotes.value,updatedAt:new Date().toISOString()};
+ if(existing)db.familyRelations[db.familyRelations.findIndex(x=>x.id===existing.id)]=item;else db.familyRelations.push(item);
+ // Parent/child relations can also enrich DNA genealogy when DNA is confirmed.
+ if(familySource.value==="DNA ტესტით დადასტურებული"){
+   const dnaRel=familyRelation.value==="parent"?"მშობელი / შვილი":familyRelation.value==="child"?"მშობელი / შვილი":familyRelationLabel(item);
+   const dr=db.dnaRelations.find(r=>(r.personA===a&&r.personB===b.id)||(r.personA===b.id&&r.personB===a));
+   if(dr){dr.relation=dnaRel;dr.status="დადასტურებულია";dr.result=dr.result||"გენეალოგიურ ჩანაწერთან დაკავშირებული"}else db.dnaRelations.push({id:uid("DNA"),personA:a,personB:b.id,relation:dnaRel,status:"დადასტურებულია",testDate:"",lab:"",result:"გენეალოგიურ ჩანაწერში მითითებულია როგორც DNA-ით დადასტურებული",notes:""});
+ }
+ saveDB();closeModal("familyModal");
+}
+function getFamilyRelationsForPerson(id){return db.familyRelations.filter(r=>r.personA===id||r.personB===id)}
+function getRelatedOther(r,id){return db.persons.find(x=>x.id===(r.personA===id?r.personB:r.personA))}
+function relationMakesParent(r,selectedId){
+  // relation=parent means A is parent of B; relation=child means A is child of B.
+  return (r.personB===selectedId&&r.relation==="parent") || (r.personA===selectedId&&r.relation==="child") || (r.personB===selectedId&&r.relation==="grandparent") || (r.personA===selectedId&&r.relation==="grandchild") || (r.personB===selectedId&&r.relation==="uncle");
+}
+function relationMakesChild(r,selectedId){
+  return (r.personA===selectedId&&r.relation==="parent") || (r.personB===selectedId&&r.relation==="child") || (r.personA===selectedId&&r.relation==="grandparent") || (r.personB===selectedId&&r.relation==="grandchild");
+}
+function ancestorLevels(id,maxDepth=4){
+  const levels=[]; let current=[id],seen=new Set([id]);
+  for(let depth=0;depth<maxDepth;depth++){
+    const next=[];
+    current.forEach(cid=>db.familyRelations.filter(r=>r.personA===cid||r.personB===cid).forEach(r=>{
+      if(!relationMakesParent(r,cid))return; const other=getRelatedOther(r,cid); if(!other||seen.has(other.id))return; seen.add(other.id); next.push({person:other,relation:r});
+    }));
+    if(!next.length)break; levels.push(next); current=next.map(x=>x.person.id);
+  }
+  return levels;
+}
+function renderGenealogy(){
+ const sel=document.getElementById("genealogyPersonFilter"),id=sel?.value||"",out=document.getElementById("genealogyOutput");
+ fillFamilyPersons(id);
+ if(!id){out.innerHTML='<div class="empty">აირჩიეთ პიროვნება, რომ ნახოთ მისი გენეალოგიური ხე და წინაპრების მოდგმა.</div>';renderFamilyTable();return}
+ const p=db.persons.find(x=>x.id===id);if(!p){out.innerHTML='<div class="empty">პიროვნება ვერ მოიძებნა.</div>';return}
+ const rels=getFamilyRelationsForPerson(id);const parents=rels.filter(r=>relationMakesParent(r,id)).map(r=>({other:getRelatedOther(r,id),r})).filter(x=>x.other);const children=rels.filter(r=>relationMakesChild(r,id)).map(r=>({other:getRelatedOther(r,id),r})).filter(x=>x.other);const others=rels.filter(r=>!relationMakesParent(r,id)&&!relationMakesChild(r,id)).map(r=>({other:getRelatedOther(r,id),r})).filter(x=>x.other);
+ const levels=ancestorLevels(id,4);
+ const levelHTML=levels.map((lev,i)=>`<div style="width:100%;margin-bottom:10px"><div class="small" style="text-align:center;margin-bottom:7px">${i===0?'მშობლები':i===1?'ბებია / ბაბუა':i===2?'მესამე თაობის წინაპრები':'უფრო ძველი წინაპრები'}</div><div class="treeChildren">${lev.map(x=>`<div class="treeNode">👤 ${esc(x.person.first)} ${esc(x.person.last)}<br><span class="linkedId">ID: ${esc(x.person.personalId||'—')}</span><br><span class="small">${esc(familyRelationLabel(x.r.relation))}</span></div>`).join('')}</div></div>`).join('<div class="treeLine" style="margin:auto"></div>');
+ const childNodes=children.map(x=>`<div class="treeNode">👤 ${esc(x.other.first)} ${esc(x.other.last)}<br><span class="linkedId">ID: ${esc(x.other.personalId||'—')}</span><br><span class="small">${esc(familyRelationLabel(x.r.relation))}</span></div>`).join("");
+ const otherNodes=others.map(x=>`<div class="miniCard"><b>${esc(x.other.first)} ${esc(x.other.last)}</b><br><span class="linkedId">ID: ${esc(x.other.personalId||'—')}</span><br>${esc(familyRelationLabel(x.r.relation))}<br><span class="small">${esc(x.r.source||"")}</span><br><button class="btn danger" style="margin-top:6px" onclick="deleteFamilyRelation('${x.r.id}')">✖ მოხსნა</button></div>`).join("");
+ out.innerHTML=`<h3>🌳 ${esc(p.first)} ${esc(p.last)}</h3><p><b>Personal ID:</b> <span class="linkedId">${esc(p.personalId||'—')}</span></p><div class="treeBox">${levelHTML}${levels.length?'<div class="treeLine" style="margin:auto"></div>':''}<div class="treeNode" style="background:#203b5c;border-color:#5b83ad"><b>👤 ${esc(p.first)} ${esc(p.last)}</b><br><span class="linkedId">ID: ${esc(p.personalId||'—')}</span></div>${childNodes?`<div class="treeLine"></div><div style="width:100%"><div class="small" style="text-align:center;margin-bottom:7px">შვილები / შთამომავლობა</div><div class="treeChildren">${childNodes}</div></div>`:''}</div>${otherNodes?`<h4 class="sectiontitle">სხვა ნათესაური კავშირები</h4><div class="treeChildren">${otherNodes}</div>`:''}<div class="successNote" style="margin-top:14px">🆔 Personal ID-ის დამთხვევისას ახალი პიროვნება დუბლიკატად არ ემატება — არსებული ჩანაწერი გამოიყენება და ნათესაური კავშირი მასზე მიებმება.</div><div style="margin-top:14px"><button class="btn ok" onclick="openFamilyModal();document.getElementById('familyA').value='${p.id}'">＋ ნათესავის დაკავშირება</button></div>`;
+ renderFamilyTable();
+}
+function renderFamilyTable(){
+ const body=document.getElementById("familyBody");if(!body)return;const arr=db.familyRelations;
+ body.innerHTML=arr.length?arr.map(r=>{const a=db.persons.find(p=>p.id===r.personA),b=db.persons.find(p=>p.id===r.personB);return `<tr><td>${esc(a?personName(a.id):"უცნობი")}</td><td class="linkedId">${esc(a?.personalId||"—")}</td><td>${esc(familyRelationLabel(r.relation))}</td><td>${esc(b?personName(b.id):"უცნობი")}</td><td class="linkedId">${esc(b?.personalId||"—")}</td><td>${esc(r.source||"—")}</td><td><div class="actions"><button class="btn" onclick="openFamilyModal('${r.id}')">✏️ გასწორება</button><button class="btn danger" onclick="deleteFamilyRelation('${r.id}')">✖ მოხსნა</button></div></td></tr>`}).join(""):`<tr><td colspan="7" class="empty">გენეალოგიური კავშირები არ არის.</td></tr>`;
+}
+function deleteFamilyRelation(id){if(confirm("მოვხსნათ მხოლოდ ეს ნათესაური კავშირი? პიროვნებები არ წაიშლება.")){db.familyRelations=db.familyRelations.filter(x=>x.id!==id);saveDB()}}
+
+function normalizePhenomenonName(v){return String(v||"").trim().toLowerCase().replace(/\s+/g," ")}
+function fillPhenomenonCategories(){
+ const sel=document.getElementById("phenomenonCategory"); if(!sel)return;
+ sel.innerHTML=db.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+ const filter=document.getElementById("phenomenonCategoryFilter");
+ if(filter){const old=filter.value;filter.innerHTML=`<option value="">ყველა კატეგორია</option>`+db.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");filter.value=db.categories.includes(old)?old:"";}
+}
+function renderPhenomena(){
+ fillPhenomenonCategories();
+ const q=(document.getElementById("phenomenonSearch")?.value||"").toLowerCase().trim();
+ const cat=document.getElementById("phenomenonCategoryFilter")?.value||"";
+ const arr=db.phenomena.filter(p=>(!cat||p.category===cat)&&(`${p.name} ${p.category} ${p.description||""}`).toLowerCase().includes(q));
+ document.getElementById("phenomenaBody").innerHTML=arr.length?arr.map(p=>{
+   const linked=db.cases.filter(c=>c.phenomenonId===p.id || c.type===p.name || c.type===p.category);
+   return `<tr><td><b>${esc(p.name)}</b><br><span class="small">ID: ${esc(p.code||p.id)}</span></td><td>${esc(p.category)}</td><td>${esc(p.description||"—")}</td><td>${linked.length}</td><td><div class="actions"><button class="btn" onclick="viewPhenomenon('${p.id}')">ნახვა</button><button class="btn" onclick="editPhenomenon('${p.id}')">რედაქტირება</button><button class="btn danger" onclick="deletePhenomenon('${p.id}')">წაშლა</button></div></td></tr>`
+ }).join(""):"<tr><td colspan='5' class='empty'>ფენომენი ვერ მოიძებნა</td></tr>";
+}
+function addPhenomenonCategory(){
+ const input=document.getElementById("newPhenomenonCategory"), name=input.value.trim(); if(!name)return;
+ const exists=db.categories.some(c=>c.toLowerCase()===name.toLowerCase());
+ if(exists){alert("ასეთი კატეგორია უკვე არსებობს.");return}
+ db.categories.push(name);saveDB();fillPhenomenonCategories();document.getElementById("phenomenonCategory").value=name;input.value="";alert("კატეგორია დაემატა.");
+}
+function openPhenomenonModal(id=null){
+ document.getElementById("phenomenonModalTitle").textContent=id?"ფენომენის რედაქტირება":"ფენომენის დამატება";
+ document.getElementById("phenomenonId").value=id||"";document.getElementById("phenomenonCode").value="";document.getElementById("phenomenonName").value="";document.getElementById("phenomenonDescription").value="";document.getElementById("newPhenomenonCategory").value="";
+ fillPhenomenonCategories();
+ if(id){const p=db.phenomena.find(x=>x.id===id);if(!p)return;phenomenonCode.value=p.code||p.id;phenomenonName.value=p.name;phenomenonCategory.value=p.category;phenomenonDescription.value=p.description||""}
+ document.getElementById("phenomenonModal").classList.add("show");
+}
+function editPhenomenon(id){openPhenomenonModal(id)}
+function savePhenomenon(){
+ const id=phenomenonId.value, code=phenomenonCode.value.trim(), name=phenomenonName.value.trim(), category=phenomenonCategory.value;
+ if(!code||!name){alert("ფენომენის უნიკალური ID და სახელი აუცილებელია.");return}
+ const existingByCode=db.phenomena.find(p=>String(p.code||"").toLowerCase()===code.toLowerCase() && p.id!==id);
+ if(existingByCode){
+   if(!confirm(`ფენომენის ID „${existingByCode.code}“ უკვე არსებობს. არსებული ფენომენი გამოვიყენოთ და ეს ჩანაწერი მას დავუკავშიროთ?`))return;
+   db.cases.forEach(c=>{if(c.phenomenonId===id || c.type===name || c.type===existingByCode.name){c.phenomenonId=existingByCode.id;c.type=existingByCode.name}});
+   if(id)db.phenomena=db.phenomena.filter(p=>p.id!==id);
+   existingByCode.name=name||existingByCode.name; existingByCode.category=category||existingByCode.category; existingByCode.description=phenomenonDescription.value.trim()||existingByCode.description;
+   saveDB();closeModal("phenomenonModal");return;
+ }
+ const existingByName=db.phenomena.find(p=>normalizePhenomenonName(p.name)===normalizePhenomenonName(name) && p.id!==id);
+ if(existingByName){
+   if(!confirm(`ფენომენი „${existingByName.name}“ უკვე არსებობს. არსებული ჩანაწერი გამოვიყენოთ და მონაცემები დავაკავშიროთ?`))return;
+   db.cases.forEach(c=>{if(c.phenomenonId===id || c.type===name || c.type===existingByName.name){c.phenomenonId=existingByName.id;c.type=existingByName.name}});
+   if(id)db.phenomena=db.phenomena.filter(p=>p.id!==id);
+   existingByName.description=phenomenonDescription.value.trim()||existingByName.description; existingByName.category=category||existingByName.category;
+   saveDB();closeModal("phenomenonModal");return;
+ }
+ if(id){const p=db.phenomena.find(x=>x.id===id);if(!p)return;const oldName=p.name;p.code=code;p.name=name;p.category=category;p.description=phenomenonDescription.value.trim();db.cases.forEach(c=>{if(c.phenomenonId===id||c.type===oldName){c.phenomenonId=id;c.type=name}})}
+ else db.phenomena.push({id:uid("PH"),code,name,category,description:phenomenonDescription.value.trim()});
+ saveDB();closeModal("phenomenonModal");
+}
+function viewPhenomenon(id){
+ const p=db.phenomena.find(x=>x.id===id);if(!p)return;
+ const linked=db.cases.filter(c=>c.phenomenonId===id||c.type===p.name||c.type===p.category);
+ document.getElementById("phenomenonViewTitle").textContent="👽 "+p.name;
+ document.getElementById("phenomenonViewBody").innerHTML=`<p><b>უნიკალური ID:</b> ${esc(p.code||p.id)}</p><p><b>კატეგორია:</b> ${esc(p.category)}</p><p><b>აღწერა:</b><br>${esc(p.description||"—").replace(/\n/g,"<br>")}</p><h3 class="sectiontitle">დაკავშირებული შემთხვევები (${linked.length})</h3>${linked.length?linked.map(c=>`<p>🛸 <b>${esc(c.title)}</b> — ${esc(c.date)} — ${badge(c.status)}</p>`).join(""):"<p>დაკავშირებული შემთხვევა არ არის.</p>"}`;
+ document.getElementById("phenomenonViewModal").classList.add("show");
+}
+function deletePhenomenon(id){
+ const p=db.phenomena.find(x=>x.id===id);if(!p)return;
+ const count=db.cases.filter(c=>c.phenomenonId===id||c.type===p.name).length;
+ if(!confirm(`წავშალოთ „${p.name}“? დაკავშირებული შემთხვევების რაოდენობა: ${count}. შემთხვევები არ წაიშლება.`))return;
+ db.phenomena=db.phenomena.filter(x=>x.id!==id);db.cases.forEach(c=>{if(c.phenomenonId===id)c.phenomenonId=""});saveDB();
+}
+
+function fillPersonSelect(id){
+ const s=document.getElementById(id); if(!s)return;
+ s.innerHTML=db.persons.length?db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId)}</option>`).join(""):"<option disabled>პიროვნებები ჯერ არ არის</option>";
+}
+function fillPhenomenonSelect(id){const s=document.getElementById(id);s.innerHTML=(db.phenomena.length?db.phenomena.map(p=>`<option>${esc(p.name)}</option>`).join(""):"<option>უცნობი</option>")}
+function fillSelects(){
+ fillPhenomenonCategories();
+ fillPhenomenonSelect("caseType"); fillPersonSelect("casePersons");
+ const opts=db.cases.map(c=>`<option value="${esc(c.id)}">${esc(c.id)} — ${esc(c.title)}</option>`).join("");
+ evidenceCase.innerHTML="<option value=''>— შემთხვევის გარეშე —</option>"+opts;
+ reportCase.innerHTML="<option value=''>— აირჩიეთ —</option>"+opts;
+}
+function renderEvidence(){
+ const q=(document.getElementById("evidenceSearch")?.value||"").toLowerCase();
+ const arr=db.evidence.filter(e=>JSON.stringify(e).toLowerCase().includes(q));
+ document.getElementById("evidenceBody").innerHTML=arr.length?arr.map(e=>{const c=db.cases.find(x=>x.id===e.caseId);return `<tr><td><b>${esc(e.name)}</b></td><td>${esc(e.type)}</td><td>${c?esc(c.title):"—"}</td><td>${esc(e.description)}<br><span class="small">${esc(e.file)}</span></td><td><button class="btn danger" onclick="deleteEvidence('${e.id}')">წაშლა</button></td></tr>`}).join(""):"<tr><td colspan='5' class='empty'>მასალა ვერ მოიძებნა</td></tr>";
+}
+function openEvidenceModal(){["evidenceName","evidenceFile","evidenceDescription"].forEach(x=>document.getElementById(x).value="");fillSelects();evidenceCase.value="";document.getElementById("evidenceModal").classList.add("show")}
+function saveEvidence(){if(!evidenceName.value.trim()){alert("მასალის სახელი აუცილებელია.");return}db.evidence.push({id:uid("EVD"),name:evidenceName.value.trim(),type:evidenceType.value,caseId:evidenceCase.value,file:evidenceFile.value,description:evidenceDescription.value});saveDB();closeModal("evidenceModal")}
+function deleteEvidence(id){if(confirm("წავშალოთ მასალა?")){db.evidence=db.evidence.filter(x=>x.id!==id);saveDB()}}
+
+async function generateReport(){const id=reportCase.value;if(!id){reportOutput.innerHTML="<div class='empty'>აირჩიეთ შემთხვევა.</div>";return}const c=db.cases.find(x=>x.id===id);reportOutput.innerHTML=caseHTML(c,db.evidence.filter(e=>e.caseId===id));await renderCaseMediaInto("caseReportMedia",c.mediaIds||[])}
+function printReport(){const content=document.getElementById("reportOutput").innerHTML;if(!content){alert("ჯერ შექმენით ანგარიში.");return}const w=window.open("","_blank");w.document.write(`<html><head><title>UFOLOGY Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h2{font-size:25px}.sectiontitle{border-bottom:1px solid #aaa;padding-bottom:5px;margin-top:25px}.badge{padding:4px 8px;border:1px solid #777;border-radius:10px}</style></head><body>${content}</body></html>`);w.document.close();w.print()}
+
+function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ufology-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
+function importData(ev){const file=ev.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.cases||!x.persons||!x.phenomena||!x.evidence)throw Error();db=x;db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];
+db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||""});db.persons.forEach(p=>{if(!p.medical)p.medical={};if(!Array.isArray(p.phones))p.phones=p.contact?[p.contact]:[]});saveDB();alert("მონაცემები წარმატებით აღდგა.");}catch(e){alert("არასწორი ან დაზიანებული JSON ფაილია.");}};r.readAsText(file)}
+function clearAll(){if(confirm("ეს წაშლის ყველა მონაცემს ამ ბრაუზერიდან. გაგრძელდეს?")){db={cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[]};saveDB()}}
+
+function getSyncSettings(){return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{url:SUPABASE_PROJECT_URL,key:""}}
+function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI()}
+function setSyncStatus(msg,kind=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice"}
+function syncLog(msg){const el=document.getElementById("syncLog");if(!el)return;const line=`<div>🕐 ${esc(new Date().toLocaleString("ka-GE"))} — ${esc(msg)}</div>`;el.innerHTML=line+el.innerHTML}
+function updateSyncUI(){const st=document.getElementById("localDbStatus");if(st)st.innerHTML=localDbReady?"💾 <b>ლოკალური IndexedDB ბაზა აქტიურია.</b> მონაცემები ინახება ამ კომპიუტერში და ბრაუზერის დახურვა მათ არ შლის.":"⚠️ IndexedDB ვერ ჩაირთო; ამ ეტაპზე გამოიყენება ბრაუზერის LocalStorage.";const cfg=getSyncSettings();if(document.getElementById("syncUrl")){document.getElementById("syncUrl").value=cfg.url||"";document.getElementById("syncKey").value=cfg.key||"";document.getElementById("lastSync").value=syncMeta.lastSyncAt?new Date(syncMeta.lastSyncAt).toLocaleString("ka-GE"):"ჯერ არა";document.getElementById("deviceId").value=syncMeta.deviceId;const count=Object.keys(syncMeta.dirty||{}).length;setSyncStatus(cfg.url&&cfg.key?`კონფიგურირებულია. ელოდება სინქრონიზაციას: ${count} ცვლილება.`:"ონლაინ სინქრონიზაცია ჯერ არ არის კონფიგურირებული.")}}
+async function supabaseRequest(path,opts={}){const cfg=getSyncSettings();if(!cfg.url||!cfg.key)throw new Error("Supabase URL და Anon Key მიუთითეთ.");const r=await fetch(cfg.url+path,{...opts,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json",Prefer:"return=representation",...(opts.headers||{})}});const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{}if(!r.ok)throw new Error(data?.message||data?.error||text||("HTTP "+r.status));return data}
+async function testSyncConnection(){try{saveSyncSettings();await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id&limit=1');setSyncStatus("✅ Supabase კავშირი მუშაობს.","ok");syncLog("Supabase კავშირი წარმატებით შემოწმდა.")}catch(e){setSyncStatus("❌ კავშირის შეცდომა: "+e.message,"err");syncLog("კავშირის შეცდომა: "+e.message)}}
+function buildDirtyPayload(){const out=[];for(const k of Object.keys(syncMeta.dirty||{})){const d=syncMeta.dirty[k];const arr=db[d.type]||[];const item=arr.find(x=>x.id===d.id);out.push({record_id:d.type+":"+d.id,entity_type:d.type,entity_id:d.id,device_id:syncMeta.deviceId,record_data:item||null,deleted:!!d.deleted,client_updated_at:new Date().toISOString()})}return out}
+async function syncNow(){const cfg=getSyncSettings();if(!cfg.url||!cfg.key){alert("ჯერ შეიყვანეთ Supabase Project URL და Anon Key სინქრონიზაციის განყოფილებაში.");showPage("sync",document.querySelectorAll("nav button")[12]);return}setSyncStatus("⏳ სინქრონიზაცია მიმდინარეობს...");try{const payload=buildDirtyPayload();if(payload.length){await supabaseRequest('/rest/v1/ufology_sync_records?on_conflict=record_id',{method:'POST',body:JSON.stringify(payload),headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}const since=syncMeta.lastSyncAt||"1970-01-01T00:00:00.000Z";const incoming=await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id,entity_type,entity_id,device_id,record_data,deleted,client_updated_at,updated_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc');let applied=0;for(const r of (incoming||[])){if(r.device_id===syncMeta.deviceId)continue;const arr=db[r.entity_type];if(!Array.isArray(arr))continue;const idx=arr.findIndex(x=>x.id===r.entity_id);if(r.deleted){if(idx>=0)arr.splice(idx,1)}else if(r.record_data){if(idx>=0)arr[idx]=r.record_data;else arr.push(r.record_data)}applied++}syncMeta.dirty={};syncMeta.lastSyncAt=new Date().toISOString();localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady){const d=await localMainDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:syncMeta.lastSyncAt});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}renderAll();updateSyncUI();setSyncStatus(`✅ დასრულდა. გაიგზავნა ${payload.length} ცვლილება; მიღებულია/დამუშავდა ${applied} ცვლილება.` ,"ok");syncLog(`სინქრონიზაცია: ატვირთული ${payload.length}, მიღებული ${applied}`)}catch(e){setSyncStatus("❌ სინქრონიზაცია ვერ დასრულდა: "+e.message,"err");syncLog("სინქრონიზაციის შეცდომა: "+e.message)}}
+
+seed();renderAll();updateSyncUI();initLocalDatabase();
+</script>
+</body>
+</html>
