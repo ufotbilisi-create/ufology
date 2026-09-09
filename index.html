@@ -482,12 +482,12 @@ tr:hover td{background:#16253b}
 
 <script>
 const KEY="ufology_v1_data";
+const SUPABASE_PROJECT_URL="https://ihuiepozcsptkxslpgjb.supabase.co";
+const SUPABASE_API_KEY="sb_publishable_iM_PP_hIpGCsAPn1-lAj3w_FH9kI3fS";
 const LOCAL_DB_NAME="ufology_local_main";
 const LOCAL_DB_STORE="state";
 const SYNC_KEY="ufology_sync_settings";
 const SYNC_META_KEY="ufology_sync_meta";
-const SUPABASE_PROJECT_URL="https://ihuiepozcsptkxslpgjb.supabase.co";
-const SUPABASE_API_KEY="sb_publishable_iM_PP_hIpGCsAPn1-lAj3w_FH9kI3fS";
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||{cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[]};
 let previousDbSnapshot=JSON.stringify(db);
 let localDbReady=false;
@@ -508,7 +508,7 @@ db.phenomena.forEach((p,i)=>{if(!p.code)p.code="PH-"+String(i+1).padStart(6,"0")
 db.persons.forEach(p=>{if(!p.medical)p.medical={};p.medical.enteredBy=p.medical.enteredBy||"";p.medical.enteredAt=p.medical.enteredAt||"";p.medical.sourceNote=p.medical.sourceNote||"";p.medical.fileData=p.medical.fileData||"";p.medical.fileName=p.medical.fileName||"";p.phones=Array.isArray(p.phones)?p.phones:(p.contact?[p.contact]:[]);if(p.age===undefined)p.age=calcAge(p.birthDate);if(p.address===undefined)p.address="";if(p.googleLocation===undefined)p.googleLocation="";if(p.fingerprintTrace===undefined)p.fingerprintTrace="";if(p.photoData===undefined)p.photoData="";if(p.photoCapturedAt===undefined)p.photoCapturedAt="";if(p.registeredAt===undefined)p.registeredAt="";if(p.fieldCaseId===undefined)p.fieldCaseId=""});
 
 db.cases.forEach(c=>{if(!Array.isArray(c.mediaIds))c.mediaIds=[]});
-function saveDB(){localStorage.setItem(KEY,JSON.stringify(db));renderAll();}
+
 function uid(prefix){return prefix+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7).toUpperCase()}
 function calcAge(date){if(!date)return "";const b=new Date(date+"T00:00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();const m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a>=0?a:""}
 function addPhoneField(value=""){const wrap=document.getElementById("phonesWrap");const row=document.createElement("div");row.className="phoneRow";row.style.cssText="display:flex;gap:8px;margin-top:7px";row.innerHTML=`<input class="personPhone" placeholder="+995 5XX XX XX XX" value="${esc(value)}"><button type="button" class="btn danger" onclick="this.parentElement.remove()">−</button>`;wrap.appendChild(row)}
@@ -915,7 +915,7 @@ function importData(ev){const file=ev.target.files[0];if(!file)return;const r=ne
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||""});db.persons.forEach(p=>{if(!p.medical)p.medical={};if(!Array.isArray(p.phones))p.phones=p.contact?[p.contact]:[]});saveDB();alert("მონაცემები წარმატებით აღდგა.");}catch(e){alert("არასწორი ან დაზიანებული JSON ფაილია.");}};r.readAsText(file)}
 function clearAll(){if(confirm("ეს წაშლის ყველა მონაცემს ამ ბრაუზერიდან. გაგრძელდეს?")){db={cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[]};saveDB()}}
 
-function getSyncSettings(){return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{url:SUPABASE_PROJECT_URL,key:""}}
+function getSyncSettings(){const saved=JSON.parse(localStorage.getItem(SYNC_KEY)||'null');return {url:(saved?.url||SUPABASE_PROJECT_URL).replace(/\/$/,""),key:saved?.key||SUPABASE_API_KEY}}
 function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI()}
 function setSyncStatus(msg,kind=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice"}
 function syncLog(msg){const el=document.getElementById("syncLog");if(!el)return;const line=`<div>🕐 ${esc(new Date().toLocaleString("ka-GE"))} — ${esc(msg)}</div>`;el.innerHTML=line+el.innerHTML}
