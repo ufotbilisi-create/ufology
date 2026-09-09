@@ -48,9 +48,42 @@ tr:hover td{background:#16253b}
 .mobileField{max-width:760px;margin:auto}.cameraBox{border:2px dashed #395579;border-radius:14px;padding:16px;text-align:center;background:#0c1728}.photoPreview{width:180px;height:220px;object-fit:cover;border-radius:12px;border:1px solid #395579;display:none;margin:12px auto}.cameraBtn{font-size:18px;padding:14px 18px}.fieldStatus{padding:12px;border-radius:9px;margin-top:12px;display:none}.fieldStatus.ok{display:block;background:#173d29;color:#bde9cc}.fieldStatus.warn{display:block;background:#4b3c14;color:#f1dda0}.personThumb{width:48px;height:58px;object-fit:cover;border-radius:6px;border:1px solid #395579;vertical-align:middle}.personViewPhoto{max-width:280px;max-height:340px;object-fit:contain;border-radius:12px;border:1px solid #395579}.statusGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.miniCard{background:#0c1728;border:1px solid #29415f;border-radius:9px;padding:12px}.privacyNote{background:#3a2b12;color:#f1d99a;padding:12px;border-radius:9px;margin:10px 0}.resultBox{padding:12px;border-radius:9px;background:#152b43;border:1px solid #31527d;margin-top:10px}.dangerNote{background:#4a2027;color:#f4c3ca;padding:10px;border-radius:8px}.successNote{background:#173d29;color:#bde9cc;padding:10px;border-radius:8px}.mapBox{border:1px solid #395579;border-radius:10px;overflow:hidden;background:#0b1525}.mapBox iframe{width:100%;height:360px;border:0}.mediaPreviewGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.mediaCard{background:#0c1728;border:1px solid #29415f;border-radius:10px;padding:10px}.mediaCard img,.mediaCard video{width:100%;max-height:240px;object-fit:contain;border-radius:7px;background:#000}.gpsLine{display:flex;gap:8px;align-items:end}.gpsLine>div{flex:1}.treeBox{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}.treeNode{background:#162b45;border:1px solid #3b628d;border-radius:10px;padding:10px 14px;min-width:220px;text-align:center}.treeLine{width:2px;height:18px;background:#466b93}.treeChildren{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}.linkedId{font-family:monospace;color:#9fc2ea}.matchFound{background:#173d29;border:1px solid #39704d;padding:10px;border-radius:9px;margin-top:8px}.matchMissing{background:#4a2027;border:1px solid #7c4650;padding:10px;border-radius:9px;margin-top:8px}
 @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}}
 @media(max-width:600px){.grid{grid-template-columns:1fr}main{padding:12px}nav{padding:8px}}
+
+#authGate{position:fixed;inset:0;z-index:9999;background:#0b1220;display:flex;align-items:center;justify-content:center;padding:20px}
+#authGate.hidden{display:none}
+.authBox{width:min(440px,100%);background:#111c2e;border:1px solid #395579;border-radius:16px;padding:28px;box-shadow:0 20px 60px #0008}
+.authBox h2{margin-top:0;text-align:center}
+.authBox .authIcon{font-size:48px;text-align:center;margin-bottom:8px}
+.authError{display:none;background:#4a2027;color:#f4c3ca;padding:10px;border-radius:8px;margin:12px 0}
+.authError.show{display:block}
+.authActions{display:flex;gap:8px;margin-top:16px}
+.authActions .btn{flex:1}
+.logoutBtn{margin-left:auto;background:#67343d!important}
+.userInactive{opacity:.55}.roleAdmin{background:#713b43}.roleOperator{background:#28603d}.roleResearcher{background:#1d527d}
 </style>
 </head>
 <body>
+
+<div id="authGate">
+  <div class="authBox">
+    <div class="authIcon">🔐</div>
+    <h2>UFOLOGY — ადმინისტრატორის შესვლა</h2>
+    <p class="small" style="text-align:center">სისტემაში შესასვლელად გამოიყენეთ Supabase Authentication-ის ადმინისტრატორის ანგარიში.</p>
+    <label for="authEmail">E-mail</label>
+    <input id="authEmail" type="email" autocomplete="username" placeholder="admin@example.com">
+    <label for="authPassword">პაროლი</label>
+    <input id="authPassword" type="password" autocomplete="current-password" placeholder="შეიყვანეთ პაროლი">
+    <div id="authError" class="authError"></div>
+    <div class="authActions">
+      <button class="btn ok" onclick="adminLogin()">🔑 შესვლა</button>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn" style="background:#284a70" onclick="showRecoveryForm()">🔑 დაგავიწყდათ პაროლი?</button>
+    </div>
+    <p class="small" style="margin-bottom:0;text-align:center">ანგარიშის შექმნა/მართვა ხდება Supabase → Authentication → Users-ში.</p>
+  </div>
+</div>
+
 <header>
   <h1>🛸 UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა</h1>
   <p>სატესტო ვერსია V1 • მონაცემები ინახება ამ ბრაუზერში (LocalStorage)</p>
@@ -70,6 +103,9 @@ tr:hover td{background:#16253b}
   <button onclick="showPage('reports',this)">📋 ანგარიშები</button>
   <button onclick="showPage('backup',this)">💾 Backup</button>
   <button onclick="showPage('sync',this)">☁️ სინქრონიზაცია</button>
+  <button id="usersNavBtn" onclick="showPage('users',this)">👥 მომხმარებლები</button>
+  <span id="currentUserBadge" class="badge blue" style="align-self:center">მომხმარებელი</span>
+  <button class="btn logoutBtn" onclick="adminLogout()">🚪 გამოსვლა</button>
 </nav>
 
 <main>
@@ -244,6 +280,23 @@ tr:hover td{background:#16253b}
   </div>
 </section>
 
+<section id="users" class="page">
+  <div class="toolbar"><h2 style="margin:0;flex:1">👥 მომხმარებლების მართვა</h2><button class="btn ok" onclick="refreshUsers()">🔄 განახლება</button></div>
+  <div class="notice"><b>მნიშვნელოვანი:</b> თითოეულ თანამშრომელს ექნება საკუთარი E-mail და პაროლი. საერთო პაროლი არ გამოიყენება. ახალი Auth ანგარიში იქმნება Supabase → Authentication → Users-ში; შემდეგ აქ ენიჭება როლი და აქტიურობა.</div>
+  <div class="card">
+    <h3>ჩემი ანგარიში</h3>
+    <div id="myProfileBox" class="resultBox">იტვირთება...</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>👤 სისტემის მომხმარებლები</h3>
+    <div id="usersBody" class="small">იტვირთება...</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>🧾 მოქმედებების ჟურნალი</h3>
+    <div id="auditBody" class="small">იტვირთება...</div>
+  </div>
+</section>
+
 <section id="sync" class="page">
   <div class="toolbar"><h2 style="margin:0;flex:1">☁️ ლოკალური ბაზა / დროებითი ონლაინ სინქრონიზაცია</h2><button class="btn ok" onclick="syncNow()">🔄 ახლა სინქრონიზაცია</button></div>
   <div class="card">
@@ -255,7 +308,7 @@ tr:hover td{background:#16253b}
     <h3>⚙️ Supabase კავშირი</h3>
     <div class="formgrid">
       <div class="full"><label>Supabase Project URL</label><input id="syncUrl" placeholder="https://YOUR-PROJECT.supabase.co"></div>
-      <div class="full"><label>Supabase Anon Key</label><input id="syncKey" type="password" placeholder="eyJ..."></div>
+      <div class="full"><label>Supabase Publishable Key</label><input id="syncKey" type="password" placeholder="eyJ..."></div>
       <div><label>ბოლო სინქრონიზაცია</label><input id="lastSync" readonly></div>
       <div><label>მოწყობილობის ID</label><input id="deviceId" readonly></div>
     </div>
@@ -480,10 +533,256 @@ tr:hover td{background:#16253b}
 <div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveEvidence()">💾 შენახვა</button><button class="btn" onclick="closeModal('evidenceModal')">გაუქმება</button></div>
 </div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY="ufology_v1_data";
+
 const SUPABASE_PROJECT_URL="https://ihuiepozcsptkxslpgjb.supabase.co";
 const SUPABASE_API_KEY="sb_publishable_iM_PP_hIpGCsAPn1-lAj3w_FH9kI3fS";
+const supabaseClient=window.supabase.createClient(SUPABASE_PROJECT_URL,SUPABASE_API_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
+let currentProfile=null;
+let currentRole=null;
+const ROLE_LABELS={ADMIN:"ადმინისტრატორი",OPERATOR:"ოპერატორი",RESEARCHER:"მკვლევარი"};
+function roleLabel(r){return ROLE_LABELS[r]||r||"უცნობი"}
+function isAdmin(){return currentRole==="ADMIN"}
+function canWrite(){return currentRole==="ADMIN"||currentRole==="OPERATOR"||currentRole==="RESEARCHER"}
+async function loadCurrentProfile(){
+  const {data:sessionData}=await supabaseClient.auth.getSession();
+  const uid=sessionData?.session?.user?.id;
+  if(!uid) return false;
+  try{
+    const rows=await supabaseRequest('/rest/v1/ufology_users?select=user_id,email,full_name,role,active,created_at,updated_at&user_id=eq.'+encodeURIComponent(uid)+'&limit=1');
+    currentProfile=rows?.[0]||null;
+    currentRole=currentProfile?.active===true?currentProfile.role:null;
+    if(!currentProfile||!currentRole){
+      alert('თქვენი ანგარიში არ არის აქტიური/დარეგისტრირებული UFOLOGY-ის მომხმარებლებში.');
+      await supabaseClient.auth.signOut(); return false;
+    }
+    const badge=document.getElementById('currentUserBadge');
+    if(badge) badge.textContent=(currentProfile.full_name||currentProfile.email||'მომხმარებელი')+' — '+roleLabel(currentRole);
+    const nav=document.getElementById('usersNavBtn'); if(nav) nav.style.display=isAdmin()?'':'none';
+    applyRoleUI();
+    return true;
+  }catch(e){
+    console.warn('Profile load failed',e);
+    alert('მომხმარებლის პროფილი ვერ ჩაიტვირთა. ჯერ უნდა შეიქმნას ufology_users ცხრილი და თქვენი პროფილი.');
+    return false;
+  }
+}
+function applyRoleUI(){
+  document.querySelectorAll('nav button').forEach(b=>{
+    const t=b.textContent||'';
+    if(t.includes('მომხმარებლები')) b.style.display=isAdmin()?'':'none';
+  });
+}
+async function audit(action,entityType='',entityId='',details={}){
+  try{
+    await supabaseRequest('/rest/v1/ufology_audit_log',{method:'POST',body:JSON.stringify([{user_id:currentProfile?.user_id||null,user_email:currentProfile?.email||null,action,entity_type:entityType||null,entity_id:entityId||null,details}]),headers:{Prefer:'return=minimal'}});
+  }catch(e){console.warn('Audit log unavailable:',e.message)}
+}
+async function refreshUsers(){
+  if(!isAdmin()){alert('მხოლოდ ადმინისტრატორს შეუძლია მომხმარებლების მართვა.');return}
+  try{
+    const rows=await supabaseRequest('/rest/v1/ufology_users?select=user_id,email,full_name,role,active,created_at,updated_at&order=created_at.asc');
+    const body=document.getElementById('usersBody');
+    body.innerHTML=rows?.length?'<div style="overflow:auto"><table><thead><tr><th>სახელი</th><th>E-mail</th><th>როლი</th><th>სტატუსი</th><th>შექმნა</th><th>ქმედება</th></tr></thead><tbody>'+rows.map(u=>`<tr class="${u.active?'':'userInactive'}"><td>${escapeHtml(u.full_name||'—')}</td><td>${escapeHtml(u.email||'—')}</td><td><span class="badge ${u.role==='ADMIN'?'roleAdmin':u.role==='OPERATOR'?'roleOperator':'roleResearcher'}">${escapeHtml(roleLabel(u.role))}</span></td><td>${u.active?'🟢 აქტიური':'🔴 გამორთული'}</td><td>${u.created_at?new Date(u.created_at).toLocaleString('ka-GE'):'—'}</td><td><button class="btn" onclick="changeUserRole('${u.user_id}')">როლის შეცვლა</button> <button class="btn" style="background:#76521f" onclick="adminSetUserPassword('${u.user_id}','${escapeHtml(u.email||'')}')">🔑 ახალი პაროლი</button> <button class="btn ${u.active?'danger':'ok'}" onclick="toggleUser('${u.user_id}',${!u.active})">${u.active?'გამორთვა':'ჩართვა'}</button></td></tr>`).join('')+'</tbody></table></div>':'<div class="empty">მომხმარებლები ჯერ არ არის დამატებული.</div>';
+    const me=document.getElementById('myProfileBox'); if(me) me.innerHTML=`<b>${escapeHtml(currentProfile.full_name||'')}</b><br>${escapeHtml(currentProfile.email||'')}<br><span class="badge">${escapeHtml(roleLabel(currentRole))}</span>`;
+    await refreshAudit();
+  }catch(e){document.getElementById('usersBody').innerHTML='<div class="dangerNote">მომხმარებლების ჩატვირთვა ვერ მოხერხდა: '+escapeHtml(e.message)+'</div>'}
+}
+async function changeUserRole(uid){
+  if(!isAdmin())return;
+  const role=prompt('აირჩიეთ როლი: ADMIN, OPERATOR ან RESEARCHER');
+  if(!['ADMIN','OPERATOR','RESEARCHER'].includes(role))return;
+  try{await supabaseRequest('/rest/v1/ufology_users?user_id=eq.'+encodeURIComponent(uid),{method:'PATCH',body:JSON.stringify({role,updated_at:new Date().toISOString()})});await audit('ROLE_CHANGED','user',uid,{role});await refreshUsers();}catch(e){alert('როლის შეცვლა ვერ მოხერხდა: '+e.message)}
+}
+async function adminSetUserPassword(uid,email){
+  if(!isAdmin())return;
+  if(uid===currentProfile?.user_id){alert('საკუთარი პაროლის შეცვლა აქედან არ არის საჭირო. გამოიყენეთ „დაგავიწყდათ პაროლი?“ ფუნქცია.');return}
+  const p1=prompt('ახალი პაროლი მომხმარებლისთვის '+(email||'')+'\n\nშეიყვანეთ მინიმუმ 8 სიმბოლო:');
+  if(p1===null)return;
+  if(p1.length<8){alert('პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო.');return}
+  const p2=prompt('გაიმეორეთ ახალი პაროლი:');
+  if(p2===null)return;
+  if(p1!==p2){alert('პაროლები ერთმანეთს არ ემთხვევა.');return}
+  if(!confirm('დავაყენოთ ეს ახალი პაროლი მომხმარებლისთვის?'))return;
+  try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const token=sessionData?.session?.access_token;
+    if(!token)throw new Error('ადმინისტრატორის სესია ვერ მოიძებნა.');
+    const endpoint=SUPABASE_PROJECT_URL.replace(/\/$/,'')+'/functions/v1/admin-set-password';
+    const r=await fetch(endpoint,{method:'POST',headers:{apikey:SUPABASE_API_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,password:p1})});
+    const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{}
+    if(!r.ok)throw new Error(data?.error||data?.message||text||('HTTP '+r.status));
+    await audit('PASSWORD_RESET_BY_ADMIN','user',uid,{});
+    alert('✅ მომხმარებლის პაროლი წარმატებით შეიცვალა.\n\nახალი პაროლი მომხმარებელს უსაფრთხოდ გადასცით. პაროლი სისტემაში არ ინახება და ლოგშიც არ იწერება.');
+  }catch(e){alert('❌ პაროლის შეცვლა ვერ მოხერხდა: '+e.message)}
+}
+async function toggleUser(uid,active){
+  if(!isAdmin()||uid===currentProfile?.user_id){if(uid===currentProfile?.user_id)alert('საკუთარი ანგარიში ამ ღილაკით ვერ გაითიშება.');return}
+  if(!confirm((active?'ჩავრთოთ':'გავთიშოთ')+' ეს მომხმარებელი?'))return;
+  try{await supabaseRequest('/rest/v1/ufology_users?user_id=eq.'+encodeURIComponent(uid),{method:'PATCH',body:JSON.stringify({active,updated_at:new Date().toISOString()})});await audit(active?'USER_ENABLED':'USER_DISABLED','user',uid,{});await refreshUsers();}catch(e){alert('სტატუსის შეცვლა ვერ მოხერხდა: '+e.message)}
+}
+async function refreshAudit(){
+  const body=document.getElementById('auditBody'); if(!body)return;
+  try{const rows=await supabaseRequest('/rest/v1/ufology_audit_log?select=id,user_email,action,entity_type,entity_id,details,created_at&order=created_at.desc&limit=100');body.innerHTML=rows?.length?'<div style="overflow:auto"><table><thead><tr><th>დრო</th><th>მომხმარებელი</th><th>მოქმედება</th><th>ობიექტი</th><th>დეტალები</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${new Date(r.created_at).toLocaleString('ka-GE')}</td><td>${escapeHtml(r.user_email||'—')}</td><td>${escapeHtml(r.action||'—')}</td><td>${escapeHtml((r.entity_type||'')+(r.entity_id?' / '+r.entity_id:''))}</td><td>${escapeHtml(JSON.stringify(r.details||{}))}</td></tr>`).join('')+'</tbody></table></div>':'<div class="empty">ჟურნალი ჯერ ცარიელია.</div>'}catch(e){body.innerHTML='<div class="dangerNote">Audit log ჯერ არ არის კონფიგურირებული: '+escapeHtml(e.message)+'</div>'}
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+let currentAuthSession=null;
+
+function showAuthGate(show=true){
+  const gate=document.getElementById("authGate");
+  if(gate)gate.classList.toggle("hidden",!show);
+  document.body.style.overflow=show?"hidden":"";
+}
+function authError(msg){
+  const el=document.getElementById("authError");
+  if(!el)return;
+  el.textContent=msg||"შესვლა ვერ მოხერხდა.";
+  el.classList.toggle("show",!!msg);
+}
+function showRecoveryForm(){
+  const email=document.getElementById("authEmail").value.trim();
+  const box=document.createElement("div");
+  box.id="recoveryOverlay";
+  box.style.cssText="position:fixed;inset:0;z-index:10001;background:#0b1220;display:flex;align-items:center;justify-content:center;padding:20px";
+  box.innerHTML=`<div class="authBox">
+    <div class="authIcon">🔑</div>
+    <h2>პაროლის აღდგენა</h2>
+    <p class="small">შეიყვანეთ თქვენი Supabase ანგარიშის E-mail. გამოგეგზავნებათ პაროლის აღდგენის ბმული.</p>
+    <label>E-mail</label>
+    <input id="recoveryEmail" type="email" value="${esc(email)}" autocomplete="email" placeholder="თქვენი ელფოსტა">
+    <div id="recoveryMsg" class="authError"></div>
+    <div class="authActions">
+      <button class="btn ok" onclick="sendPasswordRecovery()">📨 ბმულის გაგზავნა</button>
+      <button class="btn" onclick="closeRecoveryForm()">↩ დაბრუნება</button>
+    </div>
+  </div>`;
+  document.body.appendChild(box);
+}
+function closeRecoveryForm(){document.getElementById("recoveryOverlay")?.remove()}
+async function sendPasswordRecovery(){
+  const email=document.getElementById("recoveryEmail").value.trim();
+  const msg=document.getElementById("recoveryMsg");
+  if(!email){msg.textContent="შეიყვანეთ E-mail.";msg.classList.add("show");return}
+  const btn=document.querySelector("#recoveryOverlay .authActions .btn.ok");
+  if(btn){btn.disabled=true;btn.textContent="⏳ იგზავნება..."}
+  try{
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+    if(error)throw error;
+    msg.className="notice";
+    msg.textContent="✅ პაროლის აღდგენის ბმული გაიგზავნა. შეამოწმეთ E-mail.";
+  }catch(e){
+    msg.className="authError show";
+    msg.textContent="❌ "+(e.message||"ბმულის გაგზავნა ვერ მოხერხდა.");
+  }finally{if(btn){btn.disabled=false;btn.textContent="📨 ბმულის გაგზავნა"}}
+}
+function showNewPasswordForm(){
+  if(document.getElementById("newPasswordOverlay"))return;
+  const box=document.createElement("div");
+  box.id="newPasswordOverlay";
+  box.style.cssText="position:fixed;inset:0;z-index:10002;background:#0b1220;display:flex;align-items:center;justify-content:center;padding:20px";
+  box.innerHTML=`<div class="authBox">
+    <div class="authIcon">🔐</div>
+    <h2>ახალი პაროლის დაყენება</h2>
+    <p class="small">შეიყვანეთ ახალი პაროლი და გაიმეორეთ იგი.</p>
+    <label>ახალი პაროლი</label>
+    <input id="newPassword" type="password" autocomplete="new-password" placeholder="ახალი პაროლი">
+    <label>გაიმეორეთ ახალი პაროლი</label>
+    <input id="newPassword2" type="password" autocomplete="new-password" placeholder="გაიმეორეთ პაროლი">
+    <div id="newPasswordMsg" class="authError"></div>
+    <div class="authActions">
+      <button class="btn ok" onclick="updatePasswordFromRecovery()">🔐 პაროლის შეცვლა</button>
+    </div>
+  </div>`;
+  document.body.appendChild(box);
+}
+async function updatePasswordFromRecovery(){
+  const p=document.getElementById("newPassword").value;
+  const p2=document.getElementById("newPassword2").value;
+  const msg=document.getElementById("newPasswordMsg");
+  if(!p||p.length<6){msg.textContent="პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო.";msg.className="authError show";return}
+  if(p!==p2){msg.textContent="პაროლები ერთმანეთს არ ემთხვევა.";msg.className="authError show";return}
+  const btn=document.querySelector("#newPasswordOverlay .btn.ok");
+  if(btn){btn.disabled=true;btn.textContent="⏳ იცვლება..."}
+  try{
+    const {error}=await supabaseClient.auth.updateUser({password:p});
+    if(error)throw error;
+    msg.className="notice";
+    msg.textContent="✅ პაროლი წარმატებით შეიცვალა. ახლა შეგიძლიათ სისტემაში შესვლა.";
+    setTimeout(()=>{document.getElementById("newPasswordOverlay")?.remove();history.replaceState(null,"",window.location.pathname+window.location.search);showAuthGate(true)},1200);
+  }catch(e){
+    msg.className="authError show";
+    msg.textContent="❌ "+(e.message||"პაროლის შეცვლა ვერ მოხერხდა.");
+  }finally{if(btn){btn.disabled=false;btn.textContent="🔐 პაროლის შეცვლა"}}
+}
+async function adminLogin(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  authError("");
+  if(!email||!password){authError("შეიყვანეთ E-mail და პაროლი.");return}
+  const btn=document.querySelector("#authGate .authActions .btn");
+  if(btn){btn.disabled=true;btn.textContent="⏳ მოწმდება..."}
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    currentAuthSession=data.session;
+    showAuthGate(false);
+    await initAfterLogin();
+  }catch(e){
+    authError("❌ "+(e.message||"E-mail ან პაროლი არასწორია."));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="🔑 შესვლა"}
+  }
+}
+async function adminLogout(){
+  await supabaseClient.auth.signOut();
+  currentAuthSession=null;
+  showAuthGate(true);
+  authError("");
+  document.getElementById("authPassword").value="";
+}
+async function initAfterLogin(){
+  seed();
+  renderAll();
+  updateSyncUI();
+  await initLocalDatabase();
+}
+async function requireAdminLogin(){
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error)throw error;
+    currentAuthSession=data.session||null;
+    if(currentAuthSession){
+      showAuthGate(false);
+      await initAfterLogin();
+    }else{
+      showAuthGate(true);
+    }
+  }catch(e){
+    showAuthGate(true);
+    authError("Supabase Authentication ვერ ჩაიტვირთა: "+(e.message||e));
+  }
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
+    currentAuthSession=session||null;
+    if(event==="PASSWORD_RECOVERY"){
+      showAuthGate(true);
+      showNewPasswordForm();
+      return;
+    }
+    if(event==="SIGNED_OUT"){showAuthGate(true)}
+  });
+  const hash=window.location.hash||"";
+  if(hash.includes("error=access_denied")||hash.includes("error_code=otp_expired")){
+    history.replaceState(null,"",window.location.pathname+window.location.search);
+    authError("❌ პაროლის აღდგენის ბმული ვადაგასულია ან უკვე გამოყენებულია. მოითხოვეთ ახალი ბმული.");
+  }
+}
+
+const KEY="ufology_v1_data";
 const LOCAL_DB_NAME="ufology_local_main";
 const LOCAL_DB_STORE="state";
 const SYNC_KEY="ufology_sync_settings";
@@ -497,7 +796,7 @@ function localMainDB(){return new Promise((resolve,reject)=>{const r=indexedDB.o
 async function initLocalDatabase(){try{const d=await localMainDB();const row=await new Promise((res,rej)=>{const r=d.transaction(LOCAL_DB_STORE,"readonly").objectStore(LOCAL_DB_STORE).get("main");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});if(row?.data){db=row.data;normalizeDB();localStorage.setItem(KEY,JSON.stringify(db));previousDbSnapshot=JSON.stringify(db)}else{normalizeDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}d.close();localDbReady=true;renderAll();updateSyncUI()}catch(e){console.warn("IndexedDB unavailable",e);localDbReady=false;renderAll();updateSyncUI()}}
 function normalizeDB(){db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.cases=Array.isArray(db.cases)?db.cases:[];db.persons=Array.isArray(db.persons)?db.persons:[];db.phenomena=Array.isArray(db.phenomena)?db.phenomena:[];db.evidence=Array.isArray(db.evidence)?db.evidence:[];db.categories=Array.isArray(db.categories)?db.categories:[]}
 function markSyncChanges(oldObj,newObj){const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"];for(const t of types){const a=Array.isArray(oldObj?.[t])?oldObj[t]:[],b=Array.isArray(newObj?.[t])?newObj[t]:[];const am=new Map(a.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)])),bm=new Map(b.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));for(const [id,val] of bm)if(am.get(id)!==val)syncMeta.dirty[t+":"+id]={type:t,id,deleted:false};for(const [id] of am)if(!bm.has(id))syncMeta.dirty[t+":"+id]={type:t,id,deleted:true}}localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta))}
-function saveDB(){normalizeDB();const old=JSON.parse(previousDbSnapshot||"{}");markSyncChanges(old,db);previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);renderAll();updateSyncUI()}
+function saveDB(){normalizeDB();const old=JSON.parse(previousDbSnapshot||"{}");markSyncChanges(old,db);previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(currentProfile) audit("DATA_CHANGED","database","local",{deviceId:syncMeta.deviceId});if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);renderAll();updateSyncUI()}
 db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];
 db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];
@@ -508,7 +807,6 @@ db.phenomena.forEach((p,i)=>{if(!p.code)p.code="PH-"+String(i+1).padStart(6,"0")
 db.persons.forEach(p=>{if(!p.medical)p.medical={};p.medical.enteredBy=p.medical.enteredBy||"";p.medical.enteredAt=p.medical.enteredAt||"";p.medical.sourceNote=p.medical.sourceNote||"";p.medical.fileData=p.medical.fileData||"";p.medical.fileName=p.medical.fileName||"";p.phones=Array.isArray(p.phones)?p.phones:(p.contact?[p.contact]:[]);if(p.age===undefined)p.age=calcAge(p.birthDate);if(p.address===undefined)p.address="";if(p.googleLocation===undefined)p.googleLocation="";if(p.fingerprintTrace===undefined)p.fingerprintTrace="";if(p.photoData===undefined)p.photoData="";if(p.photoCapturedAt===undefined)p.photoCapturedAt="";if(p.registeredAt===undefined)p.registeredAt="";if(p.fieldCaseId===undefined)p.fieldCaseId=""});
 
 db.cases.forEach(c=>{if(!Array.isArray(c.mediaIds))c.mediaIds=[]});
-
 function uid(prefix){return prefix+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,7).toUpperCase()}
 function calcAge(date){if(!date)return "";const b=new Date(date+"T00:00:00"),n=new Date();let a=n.getFullYear()-b.getFullYear();const m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a>=0?a:""}
 function addPhoneField(value=""){const wrap=document.getElementById("phonesWrap");const row=document.createElement("div");row.className="phoneRow";row.style.cssText="display:flex;gap:8px;margin-top:7px";row.innerHTML=`<input class="personPhone" placeholder="+995 5XX XX XX XX" value="${esc(value)}"><button type="button" class="btn danger" onclick="this.parentElement.remove()">−</button>`;wrap.appendChild(row)}
@@ -915,17 +1213,17 @@ function importData(ev){const file=ev.target.files[0];if(!file)return;const r=ne
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||""});db.persons.forEach(p=>{if(!p.medical)p.medical={};if(!Array.isArray(p.phones))p.phones=p.contact?[p.contact]:[]});saveDB();alert("მონაცემები წარმატებით აღდგა.");}catch(e){alert("არასწორი ან დაზიანებული JSON ფაილია.");}};r.readAsText(file)}
 function clearAll(){if(confirm("ეს წაშლის ყველა მონაცემს ამ ბრაუზერიდან. გაგრძელდეს?")){db={cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[]};saveDB()}}
 
-function getSyncSettings(){const saved=JSON.parse(localStorage.getItem(SYNC_KEY)||'null');return {url:(saved?.url||SUPABASE_PROJECT_URL).replace(/\/$/,""),key:saved?.key||SUPABASE_API_KEY}}
+function getSyncSettings(){return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{url:"",key:""}}
 function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI()}
 function setSyncStatus(msg,kind=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice"}
 function syncLog(msg){const el=document.getElementById("syncLog");if(!el)return;const line=`<div>🕐 ${esc(new Date().toLocaleString("ka-GE"))} — ${esc(msg)}</div>`;el.innerHTML=line+el.innerHTML}
 function updateSyncUI(){const st=document.getElementById("localDbStatus");if(st)st.innerHTML=localDbReady?"💾 <b>ლოკალური IndexedDB ბაზა აქტიურია.</b> მონაცემები ინახება ამ კომპიუტერში და ბრაუზერის დახურვა მათ არ შლის.":"⚠️ IndexedDB ვერ ჩაირთო; ამ ეტაპზე გამოიყენება ბრაუზერის LocalStorage.";const cfg=getSyncSettings();if(document.getElementById("syncUrl")){document.getElementById("syncUrl").value=cfg.url||"";document.getElementById("syncKey").value=cfg.key||"";document.getElementById("lastSync").value=syncMeta.lastSyncAt?new Date(syncMeta.lastSyncAt).toLocaleString("ka-GE"):"ჯერ არა";document.getElementById("deviceId").value=syncMeta.deviceId;const count=Object.keys(syncMeta.dirty||{}).length;setSyncStatus(cfg.url&&cfg.key?`კონფიგურირებულია. ელოდება სინქრონიზაციას: ${count} ცვლილება.`:"ონლაინ სინქრონიზაცია ჯერ არ არის კონფიგურირებული.")}}
-async function supabaseRequest(path,opts={}){const cfg=getSyncSettings();if(!cfg.url||!cfg.key)throw new Error("Supabase URL და Anon Key მიუთითეთ.");const r=await fetch(cfg.url+path,{...opts,headers:{apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json",Prefer:"return=representation",...(opts.headers||{})}});const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{}if(!r.ok)throw new Error(data?.message||data?.error||text||("HTTP "+r.status));return data}
+async function supabaseRequest(path,opts={}){const cfg=getSyncSettings();if(!cfg.url||!cfg.key)throw new Error("Supabase URL და Anon Key მიუთითეთ.");const {data}=await supabaseClient.auth.getSession();const token=data?.session?.access_token;if(!token)throw new Error("სინქრონიზაციისთვის საჭიროა ადმინისტრატორის შესვლა.");const r=await fetch(cfg.url+path,{...opts,headers:{apikey:cfg.key,Authorization:"Bearer "+token,"Content-Type":"application/json",Prefer:"return=representation",...(opts.headers||{})}});const text=await r.text();let data2=null;try{data2=text?JSON.parse(text):null}catch{}if(!r.ok)throw new Error(data2?.message||data2?.error||text||("HTTP "+r.status));return data2}
 async function testSyncConnection(){try{saveSyncSettings();await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id&limit=1');setSyncStatus("✅ Supabase კავშირი მუშაობს.","ok");syncLog("Supabase კავშირი წარმატებით შემოწმდა.")}catch(e){setSyncStatus("❌ კავშირის შეცდომა: "+e.message,"err");syncLog("კავშირის შეცდომა: "+e.message)}}
 function buildDirtyPayload(){const out=[];for(const k of Object.keys(syncMeta.dirty||{})){const d=syncMeta.dirty[k];const arr=db[d.type]||[];const item=arr.find(x=>x.id===d.id);out.push({record_id:d.type+":"+d.id,entity_type:d.type,entity_id:d.id,device_id:syncMeta.deviceId,record_data:item||null,deleted:!!d.deleted,client_updated_at:new Date().toISOString()})}return out}
-async function syncNow(){const cfg=getSyncSettings();if(!cfg.url||!cfg.key){alert("ჯერ შეიყვანეთ Supabase Project URL და Anon Key სინქრონიზაციის განყოფილებაში.");showPage("sync",document.querySelectorAll("nav button")[12]);return}setSyncStatus("⏳ სინქრონიზაცია მიმდინარეობს...");try{const payload=buildDirtyPayload();if(payload.length){await supabaseRequest('/rest/v1/ufology_sync_records?on_conflict=record_id',{method:'POST',body:JSON.stringify(payload),headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}const since=syncMeta.lastSyncAt||"1970-01-01T00:00:00.000Z";const incoming=await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id,entity_type,entity_id,device_id,record_data,deleted,client_updated_at,updated_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc');let applied=0;for(const r of (incoming||[])){if(r.device_id===syncMeta.deviceId)continue;const arr=db[r.entity_type];if(!Array.isArray(arr))continue;const idx=arr.findIndex(x=>x.id===r.entity_id);if(r.deleted){if(idx>=0)arr.splice(idx,1)}else if(r.record_data){if(idx>=0)arr[idx]=r.record_data;else arr.push(r.record_data)}applied++}syncMeta.dirty={};syncMeta.lastSyncAt=new Date().toISOString();localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady){const d=await localMainDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:syncMeta.lastSyncAt});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}renderAll();updateSyncUI();setSyncStatus(`✅ დასრულდა. გაიგზავნა ${payload.length} ცვლილება; მიღებულია/დამუშავდა ${applied} ცვლილება.` ,"ok");syncLog(`სინქრონიზაცია: ატვირთული ${payload.length}, მიღებული ${applied}`)}catch(e){setSyncStatus("❌ სინქრონიზაცია ვერ დასრულდა: "+e.message,"err");syncLog("სინქრონიზაციის შეცდომა: "+e.message)}}
+async function syncNow(){const cfg=getSyncSettings();if(!cfg.url||!cfg.key){alert("ჯერ შეიყვანეთ Supabase Project URL და Anon Key სინქრონიზაციის განყოფილებაში.");showPage("sync",document.querySelectorAll("nav button")[12]);return}setSyncStatus("⏳ სინქრონიზაცია მიმდინარეობს...");try{const payload=buildDirtyPayload();if(payload.length){await supabaseRequest('/rest/v1/ufology_sync_records?on_conflict=record_id',{method:'POST',body:JSON.stringify(payload),headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}const since=syncMeta.lastSyncAt||"1970-01-01T00:00:00.000Z";const incoming=await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id,entity_type,entity_id,device_id,record_data,deleted,client_updated_at,updated_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc');let applied=0;for(const r of (incoming||[])){if(r.device_id===syncMeta.deviceId)continue;const arr=db[r.entity_type];if(!Array.isArray(arr))continue;const idx=arr.findIndex(x=>x.id===r.entity_id);if(r.deleted){if(idx>=0)arr.splice(idx,1)}else if(r.record_data){if(idx>=0)arr[idx]=r.record_data;else arr.push(r.record_data)}applied++}syncMeta.dirty={};syncMeta.lastSyncAt=new Date().toISOString();localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady){const d=await localMainDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:syncMeta.lastSyncAt});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}renderAll();updateSyncUI();setSyncStatus(`✅ დასრულდა. გაიგზავნა ${payload.length} ცვლილება; მიღებულია/დამუშავდა ${applied} ცვლილება.` ,"ok");syncLog(`სინქრონიზაცია: ატვირთული ${payload.length}, მიღებული ${applied}`);await audit("SYNC","sync","local",{uploaded:payload.length,received:applied})}catch(e){setSyncStatus("❌ სინქრონიზაცია ვერ დასრულდა: "+e.message,"err");syncLog("სინქრონიზაციის შეცდომა: "+e.message)}}
 
-seed();renderAll();updateSyncUI();initLocalDatabase();
+requireAdminLogin();
 </script>
 </body>
 </html>
