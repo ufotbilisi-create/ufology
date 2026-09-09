@@ -69,8 +69,8 @@ tr:hover td{background:#16253b}
     <div class="authIcon">🔐</div>
     <h2>UFOLOGY — ადმინისტრატორის შესვლა</h2>
     <p class="small" style="text-align:center">სისტემაში შესასვლელად გამოიყენეთ Supabase Authentication-ის ადმინისტრატორის ანგარიში.</p>
-    <label for="authEmail">E-mail</label>
-    <input id="authEmail" type="email" autocomplete="username" placeholder="admin@example.com">
+    <label for="authEmail">მომხმარებელი / E-mail</label>
+    <input id="authEmail" type="text" autocomplete="username" placeholder="admin ან E-mail">
     <label for="authPassword">პაროლი</label>
     <input id="authPassword" type="password" autocomplete="current-password" placeholder="შეიყვანეთ პაროლი">
     <div id="authError" class="authError"></div>
@@ -86,7 +86,7 @@ tr:hover td{background:#16253b}
 
 <header>
   <h1>🛸 UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა</h1>
-  <p>სატესტო ვერსია V1 • მონაცემები ინახება ამ ბრაუზერში (LocalStorage)</p>
+  <p>Local-first კვლევის სისტემა • მონაცემები ინახება ლოკალურად და საჭიროებისას დროებით სინქრონიზდება Supabase-თან</p>
 </header>
 
 <nav>
@@ -278,11 +278,46 @@ tr:hover td{background:#16253b}
     </div>
     <p class="small">ძირითადი მონაცემები ინახება ამ კომპიუტერის ლოკალურ IndexedDB ბაზაში. JSON Backup გამოიყენება დამატებითი უსაფრთხო ასლისთვის.</p>
   </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🗄️ საველე მონაცემების ლოკალური არქივი</h3>
+    <p>
+      ეს რეჟიმი საშუალებას გაძლევს სამუშაოს დასრულების შემდეგ შეინახო მონაცემები კომპიუტერში,
+      შემდეგ კი Supabase-დან წაშალო მხოლოდ ის ჩანაწერები, რომლებიც ამ ლოკალურ ბაზაშია წარმოდგენილი.
+      არქივი შეიძლება მოგვიანებით ისევ ჩაიტვირთოს.
+    </p>
+    <div class="actions">
+      <button class="btn ok" onclick="downloadLocalArchive()">💾 ლოკალურ არქივად შენახვა</button>
+      <label class="btn" style="display:inline-block;width:auto">📥 არქივის აღდგენა
+        <input type="file" accept=".json" onchange="restoreLocalArchive(event)" style="display:none">
+      </label>
+      <button id="cleanupSupabaseBtn" class="btn danger" onclick="cleanupArchivedSupabase()">🗑️ Supabase-ის გაწმენდა</button>
+    </div>
+    <div id="archiveStatus" class="notice" style="margin-top:12px">
+      ჯერ შექმენით ლოკალური არქივი. Supabase-ის გაწმენდისას რეკომენდებულია ჯერ არქივის ფაილის შენახვა.
+    </div>
+    <p class="small">
+      ⚠️ გაწმენდა არ შლის ლოკალურ მონაცემებს. ის მხოლოდ Supabase-ის <code>ufology_sync_records</code>-ში
+      არსებული, ლოკალურ ბაზაში წარმოდგენილი ჩანაწერების წაშლას ცდილობს. სხვა ჩანაწერები, რომლებიც ამ კომპიუტერში არ არის,
+      არ იშლება.
+    </p>
+  </div>
 </section>
 
 <section id="users" class="page">
   <div class="toolbar"><h2 style="margin:0;flex:1">👥 მომხმარებლების მართვა</h2><button class="btn ok" onclick="refreshUsers()">🔄 განახლება</button></div>
-  <div class="notice"><b>მნიშვნელოვანი:</b> თითოეულ თანამშრომელს ექნება საკუთარი E-mail და პაროლი. საერთო პაროლი არ გამოიყენება. ახალი Auth ანგარიში იქმნება Supabase → Authentication → Users-ში; შემდეგ აქ ენიჭება როლი და აქტიურობა.</div>
+  <div class="notice"><b>მნიშვნელოვანი:</b> თითოეულ თანამშრომელს ექნება საკუთარი E-mail და პაროლი. საერთო პაროლი არ გამოიყენება. <b>ადმინისტრატორს შეუძლია ახალი მომხმარებელი პირდაპირ აქედან შექმნას.</b> ახალი ანგარიში შეიქმნება Supabase Authentication-ში და ავტომატურად დაემატება UFOLOGY-ის მომხმარებლების სიას.</div>
+  <div class="card" style="margin-top:16px">
+    <h3>➕ ახალი მომხმარებლის დამატება</h3>
+    <p class="small">შეიყვანეთ თანამშრომლის სახელი, E-mail, პაროლი და როლი. პაროლი არ ინახება UFOLOGY-ის მონაცემთა ბაზაში.</p>
+    <div class="formgrid">
+      <div><label>სახელი და გვარი</label><input id="newUserName" type="text" placeholder="მაგ. გიორგი ბერიძე"></div>
+      <div><label>E-mail</label><input id="newUserEmail" type="email" placeholder="employee@example.com" autocomplete="off"></div>
+      <div><label>პაროლი</label><input id="newUserPassword" type="password" placeholder="მინიმუმ 8 სიმბოლო" autocomplete="new-password"></div>
+      <div><label>როლი</label><select id="newUserRole"><option value="OPERATOR">ოპერატორი</option><option value="RESEARCHER">მკვლევარი</option><option value="ADMIN">ადმინისტრატორი</option></select></div>
+    </div>
+    <div class="actions" style="margin-top:12px"><button class="btn ok" onclick="createUserFromApp()">➕ მომხმარებლის შექმნა</button></div>
+  </div>
   <div class="card">
     <h3>ჩემი ანგარიში</h3>
     <div id="myProfileBox" class="resultBox">იტვირთება...</div>
@@ -538,9 +573,7 @@ tr:hover td{background:#16253b}
 
 const SUPABASE_PROJECT_URL="https://ihuiepozcsptkxslpgjb.supabase.co";
 const SUPABASE_API_KEY="sb_publishable_iM_PP_hIpGCsAPn1-lAj3w_FH9kI3fS";
-const supabaseClient=window.supabase.createClient(SUPABASE_PROJECT_URL,SUPABASE_API_KEY,{
-  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
-});
+const supabaseClient=(window.supabase&&typeof window.supabase.createClient==="function")?window.supabase.createClient(SUPABASE_PROJECT_URL,SUPABASE_API_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:"ufology-auth"}}):null;
 let currentProfile=null;
 let currentRole=null;
 const ROLE_LABELS={ADMIN:"ადმინისტრატორი",OPERATOR:"ოპერატორი",RESEARCHER:"მკვლევარი"};
@@ -580,6 +613,32 @@ async function audit(action,entityType='',entityId='',details={}){
   try{
     await supabaseRequest('/rest/v1/ufology_audit_log',{method:'POST',body:JSON.stringify([{user_id:currentProfile?.user_id||null,user_email:currentProfile?.email||null,action,entity_type:entityType||null,entity_id:entityId||null,details}]),headers:{Prefer:'return=minimal'}});
   }catch(e){console.warn('Audit log unavailable:',e.message)}
+}
+async function createUserFromApp(){
+  if(!isAdmin()){alert('მხოლოდ ადმინისტრატორს შეუძლია ახალი მომხმარებლის შექმნა.');return}
+  const name=(document.getElementById('newUserName')?.value||'').trim();
+  const email=(document.getElementById('newUserEmail')?.value||'').trim().toLowerCase();
+  const password=document.getElementById('newUserPassword')?.value||'';
+  const role=document.getElementById('newUserRole')?.value||'OPERATOR';
+  if(!name){alert('შეიყვანეთ სახელი და გვარი.');return}
+  if(!email||!email.includes('@')){alert('შეიყვანეთ სწორი E-mail.');return}
+  if(password.length<8){alert('პაროლი უნდა იყოს მინიმუმ 8 სიმბოლო.');return}
+  if(!['ADMIN','OPERATOR','RESEARCHER'].includes(role)){alert('როლი არასწორია.');return}
+  if(!confirm('შევქმნათ ახალი მომხმარებელი?\n\n'+name+'\n'+email+'\n'+roleLabel(role))){return}
+  try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const token=sessionData?.session?.access_token;
+    if(!token)throw new Error('ადმინისტრატორის სესია ვერ მოიძებნა.');
+    const endpoint=SUPABASE_PROJECT_URL.replace(/\/$/,'')+'/functions/v1/admin-create-user';
+    const r=await fetch(endpoint,{method:'POST',headers:{apikey:SUPABASE_API_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({email,password,full_name:name,role})});
+    const text=await r.text();let data=null;try{data=text?JSON.parse(text):null}catch{}
+    if(!r.ok)throw new Error(data?.error||data?.message||text||('HTTP '+r.status));
+    await audit('USER_CREATED','user',data?.user_id||'',{email,role});
+    const ids=['newUserName','newUserEmail','newUserPassword'];ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    const roleEl=document.getElementById('newUserRole');if(roleEl)roleEl.value='OPERATOR';
+    alert('✅ მომხმარებელი წარმატებით შეიქმნა.\n\nE-mail: '+email+'\nროლი: '+roleLabel(role)+'\n\nთანამშრომელს შეუძლია ამ მონაცემებით UFOLOGY-ში შესვლა.');
+    await refreshUsers();
+  }catch(e){alert('❌ მომხმარებლის შექმნა ვერ მოხერხდა: '+e.message)}
 }
 async function refreshUsers(){
   if(!isAdmin()){alert('მხოლოდ ადმინისტრატორს შეუძლია მომხმარებლების მართვა.');return}
@@ -670,7 +729,7 @@ async function sendPasswordRecovery(){
   const btn=document.querySelector("#recoveryOverlay .authActions .btn.ok");
   if(btn){btn.disabled=true;btn.textContent="⏳ იგზავნება..."}
   try{
-    const redirectTo=window.location.origin+window.location.pathname;
+    const redirectTo=(window.location.protocol==="file:"?"https://ihuiepozcsptkxslpgjb.supabase.co":window.location.origin)+window.location.pathname;
     const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
     if(error)throw error;
     msg.className="notice";
@@ -720,30 +779,34 @@ async function updatePasswordFromRecovery(){
   }finally{if(btn){btn.disabled=false;btn.textContent="🔐 პაროლის შეცვლა"}}
 }
 async function adminLogin(){
-  const email=document.getElementById("authEmail").value.trim();
+  const login=document.getElementById("authEmail").value.trim();
   const password=document.getElementById("authPassword").value;
   authError("");
-  if(!email||!password){authError("შეიყვანეთ E-mail და პაროლი.");return}
+  if(!login||!password){authError("შეიყვანეთ E-mail და პაროლი.");return}
   const btn=document.querySelector("#authGate .authActions .btn");
   if(btn){btn.disabled=true;btn.textContent="⏳ მოწმდება..."}
   try{
-    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    currentAuthSession=data.session;
+    if(!supabaseClient) throw new Error("Supabase კავშირი ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტ-კავშირი და თავიდან გახსენით ფაილი.");
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email:login,password});
+    if(error){
+      if(error.message && /invalid login credentials/i.test(error.message)) throw new Error("Supabase-ში ამ E-mail-ის პაროლი არასწორია. გამოიყენეთ Reset password და შემდეგ ახალი პაროლი.");
+      throw error;
+    }
+    currentAuthSession=data.session||null;
+    if(!currentAuthSession)throw new Error("Supabase სესია ვერ შეიქმნა.");
+    const ok=await loadCurrentProfile();
+    if(!ok)throw new Error("ეს E-mail ჯერ არ არის დამატებული UFOLOGY-ის მომხმარებლებში ან ანგარიში არააქტიურია.");
     showAuthGate(false);
     await initAfterLogin();
-  }catch(e){
-    authError("❌ "+(e.message||"E-mail ან პაროლი არასწორია."));
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent="🔑 შესვლა"}
-  }
+  }catch(e){authError("❌ "+(e.message||"E-mail ან პაროლი არასწორია."))}
+  finally{if(btn){btn.disabled=false;btn.textContent="🔑 შესვლა"}}
 }
 async function adminLogout(){
-  await supabaseClient.auth.signOut();
-  currentAuthSession=null;
-  showAuthGate(true);
-  authError("");
-  document.getElementById("authPassword").value="";
+  try{if(supabaseClient)await supabaseClient.auth.signOut()}catch(e){}
+  currentAuthSession=null; currentProfile=null; currentRole=null;
+  localStorage.removeItem("ufology_temp_admin_session");
+  showAuthGate(true); authError("");
+  const pw=document.getElementById("authPassword"); if(pw)pw.value="";
 }
 async function initAfterLogin(){
   seed();
@@ -752,34 +815,25 @@ async function initAfterLogin(){
   await initLocalDatabase();
 }
 async function requireAdminLogin(){
+  if(!supabaseClient){showAuthGate(true);authError("Supabase Authentication ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტ-კავშირი.");return}
   try{
     const {data,error}=await supabaseClient.auth.getSession();
-    if(error)throw error;
+    if(error){
+      if(error.message && /invalid login credentials/i.test(error.message)) throw new Error("Supabase-ში ამ E-mail-ის პაროლი არასწორია. გამოიყენეთ Reset password და შემდეგ ახალი პაროლი.");
+      throw error;
+    }
     currentAuthSession=data.session||null;
     if(currentAuthSession){
-      showAuthGate(false);
-      await initAfterLogin();
-    }else{
-      showAuthGate(true);
-    }
-  }catch(e){
-    showAuthGate(true);
-    authError("Supabase Authentication ვერ ჩაიტვირთა: "+(e.message||e));
-  }
+      const ok=await loadCurrentProfile();
+      if(ok){showAuthGate(false);await initAfterLogin()}
+      else{await supabaseClient.auth.signOut();showAuthGate(true)}
+    }else showAuthGate(true);
+  }catch(e){showAuthGate(true);authError("Supabase Authentication ვერ ჩაიტვირთა: "+(e.message||e))}
   supabaseClient.auth.onAuthStateChange((event,session)=>{
     currentAuthSession=session||null;
-    if(event==="PASSWORD_RECOVERY"){
-      showAuthGate(true);
-      showNewPasswordForm();
-      return;
-    }
-    if(event==="SIGNED_OUT"){showAuthGate(true)}
+    if(event==="PASSWORD_RECOVERY"){showAuthGate(true);showNewPasswordForm();return}
+    if(event==="SIGNED_OUT")showAuthGate(true);
   });
-  const hash=window.location.hash||"";
-  if(hash.includes("error=access_denied")||hash.includes("error_code=otp_expired")){
-    history.replaceState(null,"",window.location.pathname+window.location.search);
-    authError("❌ პაროლის აღდგენის ბმული ვადაგასულია ან უკვე გამოყენებულია. მოითხოვეთ ახალი ბმული.");
-  }
 }
 
 const KEY="ufology_v1_data";
@@ -1208,12 +1262,120 @@ function deleteEvidence(id){if(confirm("წავშალოთ მასალ
 async function generateReport(){const id=reportCase.value;if(!id){reportOutput.innerHTML="<div class='empty'>აირჩიეთ შემთხვევა.</div>";return}const c=db.cases.find(x=>x.id===id);reportOutput.innerHTML=caseHTML(c,db.evidence.filter(e=>e.caseId===id));await renderCaseMediaInto("caseReportMedia",c.mediaIds||[])}
 function printReport(){const content=document.getElementById("reportOutput").innerHTML;if(!content){alert("ჯერ შექმენით ანგარიში.");return}const w=window.open("","_blank");w.document.write(`<html><head><title>UFOLOGY Report</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h2{font-size:25px}.sectiontitle{border-bottom:1px solid #aaa;padding-bottom:5px;margin-top:25px}.badge{padding:4px 8px;border:1px solid #777;border-radius:10px}</style></head><body>${content}</body></html>`);w.document.close();w.print()}
 
+function downloadBlobFile(filename,obj){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json;charset=utf-8"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function setArchiveStatus(msg,kind=""){
+  const el=document.getElementById("archiveStatus");if(!el)return;
+  el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice";
+}
+function archiveRecordCount(){
+  const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"];
+  return types.reduce((n,t)=>n+(Array.isArray(db[t])?db[t].length:0),0);
+}
+function makeLocalArchive(){
+  normalizeDB();
+  return {
+    format:"UFOLOGY_LOCAL_ARCHIVE",
+    version:1,
+    created_at:new Date().toISOString(),
+    device_id:syncMeta.deviceId,
+    created_by:currentProfile?{user_id:currentProfile.user_id,email:currentProfile.email,full_name:currentProfile.full_name}:null,
+    record_count:archiveRecordCount(),
+    data:JSON.parse(JSON.stringify(db))
+  };
+}
+function downloadLocalArchive(){
+  try{
+    const archive=makeLocalArchive();
+    const stamp=new Date().toISOString().replace(/[:.]/g,"-").slice(0,19);
+    downloadBlobFile("UFOLOGY_Archive_"+stamp+".json",archive);
+    localStorage.setItem("ufology_last_archive_at",archive.created_at);
+    setArchiveStatus("✅ ლოკალური არქივი შეიქმნა და ჩამოტვირთვა დაიწყო. ფაილი უსაფრთხო ადგილას შეინახეთ.","ok");
+    syncLog("ლოკალური არქივი შეიქმნა: "+archive.record_count+" ჩანაწერი");
+    audit("ARCHIVE_EXPORT","archive","local",{recordCount:archive.record_count});
+  }catch(e){setArchiveStatus("❌ არქივის შექმნა ვერ მოხერხდა: "+e.message,"err")}
+}
+function collectLocalRecordIds(){
+  const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"];
+  const ids=[];
+  for(const t of types)for(const item of (Array.isArray(db[t])?db[t]:[]))if(item?.id)ids.push(t+":"+item.id);
+  return [...new Set(ids)];
+}
+async function cleanupArchivedSupabase(){
+  if(!currentProfile||currentProfile.role!=="ADMIN"){
+    setArchiveStatus("❌ Supabase-ის გაწმენდა მხოლოდ ადმინისტრატორს შეუძლია.","err");return;
+  }
+  const ids=collectLocalRecordIds();
+  if(!ids.length){
+    setArchiveStatus("ℹ️ ლოკალურ ბაზაში გასაწმენდი ჩანაწერები არ არის.");return;
+  }
+  const last=localStorage.getItem("ufology_last_archive_at");
+  if(!last){
+    setArchiveStatus("❌ ჯერ შექმენით ლოკალური არქივი და მხოლოდ შემდეგ დაიწყეთ Supabase-ის გაწმენდა.","err");return;
+  }
+  const ok=confirm("დარწმუნებული ხართ?\n\nSupabase-დან წაიშლება მხოლოდ "+ids.length+" ჩანაწერის ID, რომლებიც ამ კომპიუტერის ლოკალურ ბაზაშია წარმოდგენილი.\n\nლოკალური მონაცემები არ წაიშლება.\n\nგაგრძელდეს?");
+  if(!ok)return;
+  const cfg=getSyncSettings();
+  if(!cfg.url||!cfg.key){setArchiveStatus("❌ Supabase კავშირი არ არის კონფიგურირებული.","err");return}
+  try{
+    setArchiveStatus("⏳ Supabase-ის არქივირებული ჩანაწერების გაწმენდა მიმდინარეობს...");
+    const quoted=ids.map(x=>`"${String(x).replace(/"/g,'\\"')}"`).join(",");
+    await supabaseRequest('/rest/v1/ufology_sync_records?record_id=in.('+encodeURIComponent(quoted)+')',{
+      method:"DELETE",
+      headers:{Prefer:"return=minimal"}
+    });
+    syncMeta.dirty={};
+    localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));
+    setArchiveStatus("✅ Supabase-ის გაწმენდა დასრულდა. ლოკალური მონაცემები შენარჩუნებულია.","ok");
+    syncLog("Supabase-ის გაწმენდა: მოთხოვნილი ჩანაწერები "+ids.length);
+    await audit("ARCHIVE_CLEANUP","archive","supabase",{requested:ids.length});
+  }catch(e){
+    setArchiveStatus("❌ Supabase-ის გაწმენდა ვერ დასრულდა: "+e.message,"err");
+    syncLog("არქივის გაწმენდის შეცდომა: "+e.message);
+  }
+}
+function restoreLocalArchive(ev){
+  const file=ev.target.files?.[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const x=JSON.parse(r.result);
+      const incoming=x?.format==="UFOLOGY_LOCAL_ARCHIVE"?x.data:x;
+      if(!incoming||!Array.isArray(incoming.cases)||!Array.isArray(incoming.persons)||!Array.isArray(incoming.phenomena)||!Array.isArray(incoming.evidence))throw Error("არასწორი არქივის ფორმატი");
+      const count=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"].reduce((n,t)=>n+(Array.isArray(incoming[t])?incoming[t].length:0),0);
+      if(!confirm("არქივიდან აღდგება "+count+" ჩანაწერი.\n\nმიმდინარე ლოკალური მონაცემები ჩანაცვლდება არქივის მონაცემებით.\n\nგაგრძელდეს?"))return;
+      db=JSON.parse(JSON.stringify(incoming));
+      normalizeDB();
+      previousDbSnapshot="{}";
+      syncMeta.dirty={};
+      markSyncChanges({},db);
+      localStorage.setItem(KEY,JSON.stringify(db));
+      previousDbSnapshot=JSON.stringify(db);
+      if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);
+      renderAll();updateSyncUI();
+      setArchiveStatus("✅ არქივი წარმატებით აღდგა ლოკალურ ბაზაში: "+count+" ჩანაწერი.","ok");
+      syncLog("ლოკალური არქივიდან აღდგა "+count+" ჩანაწერი");
+      audit("ARCHIVE_IMPORT","archive","local",{recordCount:count});
+    }catch(e){setArchiveStatus("❌ არქივის აღდგენა ვერ მოხერხდა: "+e.message,"err")}
+    ev.target.value="";
+  };
+  r.readAsText(file);
+}
 function exportData(){const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ufology-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();URL.revokeObjectURL(a.href)}
 function importData(ev){const file=ev.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.cases||!x.persons||!x.phenomena||!x.evidence)throw Error();db=x;db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||""});db.persons.forEach(p=>{if(!p.medical)p.medical={};if(!Array.isArray(p.phones))p.phones=p.contact?[p.contact]:[]});saveDB();alert("მონაცემები წარმატებით აღდგა.");}catch(e){alert("არასწორი ან დაზიანებული JSON ფაილია.");}};r.readAsText(file)}
 function clearAll(){if(confirm("ეს წაშლის ყველა მონაცემს ამ ბრაუზერიდან. გაგრძელდეს?")){db={cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[]};saveDB()}}
 
-function getSyncSettings(){return JSON.parse(localStorage.getItem(SYNC_KEY)||'null')||{url:"",key:""}}
+function getSyncSettings(){
+  const saved=JSON.parse(localStorage.getItem(SYNC_KEY)||'null');
+  return {
+    url:(saved?.url||SUPABASE_PROJECT_URL).replace(/\/$/,""),
+    key:saved?.key||SUPABASE_API_KEY
+  }
+}
 function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI()}
 function setSyncStatus(msg,kind=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice"}
 function syncLog(msg){const el=document.getElementById("syncLog");if(!el)return;const line=`<div>🕐 ${esc(new Date().toLocaleString("ka-GE"))} — ${esc(msg)}</div>`;el.innerHTML=line+el.innerHTML}
