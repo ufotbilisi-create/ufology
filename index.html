@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა V1</title>
+<title>UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა V7</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,"Noto Sans Georgian",sans-serif;background:#0b1220;color:#e8eef7}
@@ -60,6 +60,18 @@ tr:hover td{background:#16253b}
 .authActions .btn{flex:1}
 .logoutBtn{margin-left:auto;background:#67343d!important}
 .userInactive{opacity:.55}.roleAdmin{background:#713b43}.roleOperator{background:#28603d}.roleResearcher{background:#1d527d}
+
+.v7Grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.v7Stat{background:#0c1728;border:1px solid #29415f;border-radius:10px;padding:14px}
+.v7Stat b{display:block;font-size:24px;margin-top:6px}
+.v7Code{font-family:monospace;font-size:12px;word-break:break-all}
+.v7Ok{color:#bde9cc}.v7Warn{color:#f1dda0}.v7Bad{color:#f4c3ca}
+.v7History{max-height:420px;overflow:auto}
+.v7Conflict{border:1px solid #7c4650;background:#351c22;border-radius:9px;padding:12px;margin:8px 0}
+.v7Revision{border:1px solid #29415f;background:#0c1728;border-radius:9px;padding:12px;margin:8px 0}
+@media(max-width:900px){.v7Grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.v7Grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -86,7 +98,7 @@ tr:hover td{background:#16253b}
 
 <header>
   <h1>🛸 UFOLOGY — ანომალიური მოვლენების კვლევის სისტემა</h1>
-  <p>Local-first კვლევის სისტემა • მონაცემები ინახება ლოკალურად და საჭიროებისას დროებით სინქრონიზდება Supabase-თან</p>
+  <p>Local-first მონაცემთა სისტემა V7 • IndexedDB + Supabase + Archive + Version History + Integrity Control</p>
 </header>
 
 <nav>
@@ -100,9 +112,11 @@ tr:hover td{background:#16253b}
   <button onclick="showPage('missing',this)">🚨 ძებნილი / დაკარგული</button>
   <button onclick="showPage('phenomena',this)">👽 ფენომენები</button>
   <button onclick="showPage('evidence',this)">📁 მასალები</button>
+  <button onclick="showPage('evidenceChain',this)">🔗 Evidence Chain</button>
   <button onclick="showPage('reports',this)">📋 ანგარიშები</button>
   <button onclick="showPage('backup',this)">💾 Backup</button>
   <button onclick="showPage('sync',this)">☁️ სინქრონიზაცია</button>
+  <button onclick="showPage('dataControl',this)">🧠 მონაცემთა კონტროლი</button>
   <button id="usersNavBtn" onclick="showPage('users',this)">👥 მომხმარებლები</button>
   <span id="currentUserBadge" class="badge blue" style="align-self:center">მომხმარებელი</span>
   <button class="btn logoutBtn" onclick="adminLogout()">🚪 გამოსვლა</button>
@@ -180,7 +194,7 @@ tr:hover td{background:#16253b}
         <button class="btn ok cameraBtn" onclick="saveFieldPerson()">💾 პიროვნების შენახვა</button>
         <button class="btn" onclick="resetFieldForm()">🔄 გასუფთავება</button>
       </div>
-      <p class="small" style="margin-top:14px">ავტომატურად ჩაიწერება რეგისტრაციის თარიღი და დრო. V1-ში ფოტო ინახება ამ მოწყობილობის ბრაუზერში; დიდი რაოდენობის ფოტოებისთვის შემდეგ დავამატებთ Supabase Storage-ს.</p>
+      <p class="small" style="margin-top:14px">ავტომატურად ჩაიწერება რეგისტრაციის თარიღი და დრო. V1-ში ფოტო ინახება ამ მოწყობილობის ბრაუზერში; V7-ში ფოტოებისთვის გამოიყენება Storage-ready არქიტექტურა: Supabase Storage + Local fallback.</p>
     </div>
   </div>
 </section>
@@ -246,10 +260,160 @@ tr:hover td{background:#16253b}
     <input id="evidenceSearch" class="search" placeholder="🔎 ძებნა..." oninput="renderEvidence()">
     <button class="btn ok" onclick="openEvidenceModal()">＋ მასალის დამატება</button>
   </div>
-  <div class="notice">V1-ში შესაძლებელია მასალის აღწერისა და ფაილის სახელის აღრიცხვა. დიდი ფოტო/ვიდეო ფაილებისთვის V2-ში დავამატებთ Supabase Storage-ს.</div>
+  <div class="notice">V1-ში შესაძლებელია მასალის აღწერისა და ფაილის სახელის აღრიცხვა. V7-ში რეალური ფაილებისთვის გამოყენებულია Storage-ready არქიტექტურა: Supabase Storage + Local fallback.</div>
   <div class="card" style="padding:0;overflow:auto"><table><thead><tr>
     <th>მასალა</th><th>ტიპი</th><th>შემთხვევა</th><th>აღწერა</th><th>ქმედება</th>
   </tr></thead><tbody id="evidenceBody"></tbody></table></div>
+</section>
+
+
+<section id="evidenceChain" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🔗 Evidence Chain V7.1</h2>
+    <button class="btn ok" onclick="ecRefresh()">🔄 განახლება</button>
+    <button class="btn" onclick="ecCreateChain()">➕ ახალი Chain</button>
+    <button class="btn" onclick="ecExportReport()">📄 Chain Report</button>
+  </div>
+
+  <div class="notice">
+    <b>Evidence Chain V7.1</b> აკავშირებს შემთხვევას, პიროვნებას, დაკვირვებას,
+    მტკიცებულებას, ფაილს, ანალიზს, ჰიპოთეზას და დასკვნას ერთ ქრონოლოგიურ ისტორიაში.
+    <br><span class="small">Reliability Score არის მონაცემთა/მტკიცებულების ხარისხის შეფასება და არა ფაქტის დადასტურება.</span>
+  </div>
+
+  <div class="v7Grid">
+    <div class="v7Stat"><span>Chains</span><b id="ecStatChains">0</b></div>
+    <div class="v7Stat"><span>Links</span><b id="ecStatLinks">0</b></div>
+    <div class="v7Stat"><span>Warnings</span><b id="ecStatWarnings">0</b></div>
+    <div class="v7Stat"><span>Verified Files</span><b id="ecStatVerified">0</b></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🔎 Chain Explorer</h3>
+    <div class="grid">
+      <div>
+        <label>შემთხვევა</label>
+        <select id="ecCaseFilter" onchange="ecRefresh()">
+          <option value="">ყველა შემთხვევა</option>
+        </select>
+      </div>
+      <div>
+        <label>სტატუსი</label>
+        <select id="ecStatusFilter" onchange="ecRefresh()">
+          <option value="">ყველა</option>
+          <option value="active">Active</option>
+          <option value="closed">Closed</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+      <div>
+        <label>ძიება</label>
+        <input id="ecSearch" placeholder="Chain ID, სათაური, Evidence..." oninput="ecRefresh()">
+      </div>
+    </div>
+    <div id="ecChainList" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>➕ Evidence Chain / Link</h3>
+    <input type="hidden" id="ecEditId">
+    <div class="grid">
+      <div>
+        <label>Chain ID</label>
+        <select id="ecChainId"></select>
+      </div>
+      <div>
+        <label>Relation</label>
+        <select id="ecRelation">
+          <option value="supports">supports — მხარს უჭერს</option>
+          <option value="derived_from">derived_from — მიღებულია აქედან</option>
+          <option value="witnessed_by">witnessed_by — მოწმეა</option>
+          <option value="contains">contains — შეიცავს</option>
+          <option value="analyzed_by">analyzed_by — გააანალიზა</option>
+          <option value="supports_hypothesis">supports_hypothesis — მხარს უჭერს ჰიპოთეზას</option>
+          <option value="contradicts">contradicts — ეწინააღმდეგება</option>
+          <option value="results_in">results_in — იწვევს შედეგს</option>
+          <option value="related_to">related_to — დაკავშირებულია</option>
+        </select>
+      </div>
+      <div>
+        <label>From Type</label>
+        <select id="ecFromType" onchange="ecPopulateEntitySelect('from')">
+          <option value="case">Case</option>
+          <option value="person">Person</option>
+          <option value="evidence">Evidence</option>
+          <option value="file">File</option>
+          <option value="observation">Observation</option>
+          <option value="analysis">Analysis</option>
+          <option value="hypothesis">Hypothesis</option>
+          <option value="conclusion">Conclusion</option>
+        </select>
+      </div>
+      <div>
+        <label>From ID / Name</label>
+        <input id="ecFromId" placeholder="ID">
+      </div>
+      <div>
+        <label>To Type</label>
+        <select id="ecToType" onchange="ecPopulateEntitySelect('to')">
+          <option value="person">Person</option>
+          <option value="evidence">Evidence</option>
+          <option value="file">File</option>
+          <option value="observation">Observation</option>
+          <option value="analysis">Analysis</option>
+          <option value="hypothesis">Hypothesis</option>
+          <option value="conclusion">Conclusion</option>
+          <option value="case">Case</option>
+        </select>
+      </div>
+      <div>
+        <label>To ID / Name</label>
+        <input id="ecToId" placeholder="ID">
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:10px">
+      <div>
+        <label>შენიშვნა</label>
+        <textarea id="ecNote" rows="3" placeholder="რატომ არის ეს ორი ჩანაწერი დაკავშირებული?"></textarea>
+      </div>
+      <div>
+        <label>Evidence Quality / Reliability (0–100)</label>
+        <input id="ecReliability" type="number" min="0" max="100" value="50">
+        <div class="small">ეს არ ნიშნავს, რომ ჰიპოთეზა ან დასკვნა ჭეშმარიტია.</div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:12px">
+      <button class="btn ok" onclick="ecSaveLink()">💾 შენახვა</button>
+      <button class="btn" onclick="ecClearForm()">გასუფთავება</button>
+    </div>
+    <div id="ecFormStatus" class="notice" style="margin-top:10px">ახალი Link-ის შესაქმნელად აირჩიეთ Chain.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🔐 Chain of Custody / Provenance</h3>
+    <div id="ecCustodyOutput" class="v7History">
+      <div class="empty">აირჩიეთ Chain ზემოთ მოცემული სიიდან.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🕒 Case Timeline</h3>
+    <div id="ecTimelineOutput" class="v7History">
+      <div class="empty">Timeline ჯერ არ არის არჩეული.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🕸️ Evidence Graph</h3>
+    <div id="ecGraphOutput" class="notice">აირჩიეთ Chain Graph-ის სანახავად.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>⚠️ Automatic Validation</h3>
+    <div id="ecValidationOutput" class="notice">Validation ჯერ არ შესრულებულა.</div>
+  </div>
 </section>
 
 <section id="reports" class="page">
@@ -275,6 +439,7 @@ tr:hover td{background:#16253b}
         <input type="file" accept=".json" onchange="importData(event)" style="display:none">
       </label>
       <button class="btn danger" onclick="clearAll()">⚠ ყველა სატესტო მონაცემის წაშლა</button>
+      <button class="btn" onclick="exportV7Archive()">🧠 V7 სტრუქტურირებული Archive</button>
     </div>
     <p class="small">ძირითადი მონაცემები ინახება ამ კომპიუტერის ლოკალურ IndexedDB ბაზაში. JSON Backup გამოიყენება დამატებითი უსაფრთხო ასლისთვის.</p>
   </div>
@@ -301,6 +466,58 @@ tr:hover td{background:#16253b}
       არსებული, ლოკალურ ბაზაში წარმოდგენილი ჩანაწერების წაშლას ცდილობს. სხვა ჩანაწერები, რომლებიც ამ კომპიუტერში არ არის,
       არ იშლება.
     </p>
+  </div>
+</section>
+
+
+<section id="dataControl" class="page">
+  <div class="toolbar">
+    <h2 style="margin:0;flex:1">🧠 V7 მონაცემთა კონტროლი</h2>
+    <button class="btn ok" onclick="runIntegrityCheck()">🔍 Integrity Check</button>
+    <button class="btn" onclick="exportV7Archive()">💾 V7 Archive</button>
+    <button class="btn" onclick="migrateToV7()">🔄 V7 მიგრაცია</button>
+  </div>
+
+  <div class="notice">
+    <b>V7 მონაცემთა არქიტექტურა:</b> ძირითადი სამუშაო კვლავ Local-first რეჟიმშია.
+    V7 ამატებს ცალკე medical_records ისტორიას, record revisions-ს, conflict queue-ს,
+    მონაცემთა მთლიანობის შემოწმებას და Storage-ready ფაილის მეტამონაცემებს.
+  </div>
+
+  <div class="v7Grid">
+    <div class="v7Stat"><span>Schema</span><b id="v7SchemaVersion">1</b></div>
+    <div class="v7Stat"><span>Revision-ები</span><b id="v7RevisionCount">0</b></div>
+    <div class="v7Stat"><span>კონფლიქტები</span><b id="v7ConflictCount">0</b></div>
+    <div class="v7Stat"><span>Integrity Errors</span><b id="v7IntegrityCount">0</b></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>☁️ Storage</h3>
+    <p>V7 მზად არის Supabase Storage-ისთვის. მონაცემთა ბაზაში ინახება ფაილის მეტამონაცემები და Storage path, ხოლო ფაილის რეალური ბაიტები ცალკე საცავში შეიძლება განთავსდეს.</p>
+    <div class="formgrid">
+      <div><label>Storage Bucket</label><input id="v7StorageBucket" value="ufology-media"></div>
+      <div><label>Storage რეჟიმი</label><select id="v7StorageMode"><option value="auto">Auto — Storage → Local fallback</option><option value="local">მხოლოდ Local</option><option value="cloud">მხოლოდ Supabase Storage</option></select></div>
+    </div>
+    <div class="actions" style="margin-top:10px">
+      <button class="btn ok" onclick="saveV7StorageSettings()">💾 Storage პარამეტრების შენახვა</button>
+      <button class="btn" onclick="testV7Storage()">🔌 Storage ტესტი</button>
+    </div>
+    <div id="v7StorageStatus" class="notice" style="margin-top:12px">Storage პარამეტრები იტვირთება...</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🧪 მონაცემთა Integrity Check</h3>
+    <div id="v7IntegrityOutput" class="notice">დააჭირეთ Integrity Check-ს.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>⚠️ Sync Conflicts</h3>
+    <div id="v7ConflictOutput" class="v7History"><div class="empty">კონფლიქტები არ არის.</div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🕘 Record Revision History</h3>
+    <div id="v7RevisionOutput" class="v7History"><div class="empty">Revision-ები ჯერ არ არის.</div></div>
   </div>
 </section>
 
@@ -358,7 +575,7 @@ tr:hover td{background:#16253b}
     <h3>📊 სინქრონიზაციის ლოგი</h3>
     <div id="syncLog" class="small">ჯერ არაფერი შესრულებულა.</div>
   </div>
-  <div class="privacyNote" style="margin-top:16px">⚠️ ონლაინ სინქრონიზაციის ჩართვისას Supabase-ში გადაეცემა მხოლოდ ახალი/შეცვლილი ჩანაწერები. ფოტო/ვიდეო ფაილების ცალკე Storage-სინქრონიზაცია შემდეგ ეტაპზე ჯობს, რათა მონაცემთა ბაზა არ გადაიტვირთოს.</div>
+  <div class="privacyNote" style="margin-top:16px">⚠️ ონლაინ სინქრონიზაციის ჩართვისას Supabase-ში გადაეცემა მხოლოდ ახალი/შეცვლილი ჩანაწერები. V7-ში ფოტო/ვიდეო ფაილები მონაცემთა ჩანაწერისგან განცალკევებულია; Storage გამოიყენება ფაილებისთვის, ხოლო მონაცემთა ბაზაში ინახება მეტამონაცემები.</div>
 </section>
 </main>
 
@@ -563,6 +780,7 @@ tr:hover td{background:#16253b}
 <div><label>ტიპი</label><select id="evidenceType"><option>ფოტო</option><option>ვიდეო</option><option>აუდიო</option><option>დოკუმენტი</option><option>სხვა</option></select></div>
 <div><label>დაკავშირებული შემთხვევა</label><select id="evidenceCase"></select></div>
 <div><label>ფაილის სახელი / ბმული</label><input id="evidenceFile"></div>
+<div><label>რეალური ფაილი</label><input id="evidenceFileInput" type="file" onchange="previewV7EvidenceFile(event)"></div>
 <div class="full"><label>აღწერა</label><textarea id="evidenceDescription"></textarea></div>
 </div>
 <div class="actions" style="margin-top:16px"><button class="btn ok" onclick="saveEvidence()">💾 შენახვა</button><button class="btn" onclick="closeModal('evidenceModal')">გაუქმება</button></div>
@@ -810,6 +1028,8 @@ async function adminLogout(){
 }
 async function initAfterLogin(){
   seed();
+  normalizeDB();
+  migrateToV7Silently();
   renderAll();
   updateSyncUI();
   await initLocalDatabase();
@@ -841,16 +1061,42 @@ const LOCAL_DB_NAME="ufology_local_main";
 const LOCAL_DB_STORE="state";
 const SYNC_KEY="ufology_sync_settings";
 const SYNC_META_KEY="ufology_sync_meta";
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[]};
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[],medicalRecords:[],revisions:[],conflicts:[],fileIndex:[],schemaVersion:7};
 let previousDbSnapshot=JSON.stringify(db);
 let localDbReady=false;
 let syncMeta=JSON.parse(localStorage.getItem(SYNC_META_KEY)||'null')||{deviceId:uidSafeDevice(),lastSyncAt:"",dirty:{}};
 function uidSafeDevice(){return "DEV-"+Math.random().toString(36).slice(2,10).toUpperCase()+"-"+Date.now().toString(36).toUpperCase()}
 function localMainDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(LOCAL_DB_NAME,1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains(LOCAL_DB_STORE))d.createObjectStore(LOCAL_DB_STORE,{keyPath:"id"})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-async function initLocalDatabase(){try{const d=await localMainDB();const row=await new Promise((res,rej)=>{const r=d.transaction(LOCAL_DB_STORE,"readonly").objectStore(LOCAL_DB_STORE).get("main");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});if(row?.data){db=row.data;normalizeDB();localStorage.setItem(KEY,JSON.stringify(db));previousDbSnapshot=JSON.stringify(db)}else{normalizeDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}d.close();localDbReady=true;renderAll();updateSyncUI()}catch(e){console.warn("IndexedDB unavailable",e);localDbReady=false;renderAll();updateSyncUI()}}
-function normalizeDB(){db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.cases=Array.isArray(db.cases)?db.cases:[];db.persons=Array.isArray(db.persons)?db.persons:[];db.phenomena=Array.isArray(db.phenomena)?db.phenomena:[];db.evidence=Array.isArray(db.evidence)?db.evidence:[];db.categories=Array.isArray(db.categories)?db.categories:[]}
-function markSyncChanges(oldObj,newObj){const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations"];for(const t of types){const a=Array.isArray(oldObj?.[t])?oldObj[t]:[],b=Array.isArray(newObj?.[t])?newObj[t]:[];const am=new Map(a.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)])),bm=new Map(b.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));for(const [id,val] of bm)if(am.get(id)!==val)syncMeta.dirty[t+":"+id]={type:t,id,deleted:false};for(const [id] of am)if(!bm.has(id))syncMeta.dirty[t+":"+id]={type:t,id,deleted:true}}localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta))}
-function saveDB(){normalizeDB();const old=JSON.parse(previousDbSnapshot||"{}");markSyncChanges(old,db);previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(currentProfile) audit("DATA_CHANGED","database","local",{deviceId:syncMeta.deviceId});if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);renderAll();updateSyncUI()}
+async function initLocalDatabase(){try{const d=await localMainDB();const row=await new Promise((res,rej)=>{const r=d.transaction(LOCAL_DB_STORE,"readonly").objectStore(LOCAL_DB_STORE).get("main");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});if(row?.data){db=row.data;normalizeDB();localStorage.setItem(KEY,JSON.stringify(db));previousDbSnapshot=JSON.stringify(db)}else{normalizeDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}d.close();localDbReady=true;renderAll();updateSyncUI();renderV7DataControl()}catch(e){console.warn("IndexedDB unavailable",e);localDbReady=false;renderAll();updateSyncUI()}}
+function normalizeDB(){db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.cases=Array.isArray(db.cases)?db.cases:[];db.persons=Array.isArray(db.persons)?db.persons:[];db.phenomena=Array.isArray(db.phenomena)?db.phenomena:[];db.evidence=Array.isArray(db.evidence)?db.evidence:[];db.categories=Array.isArray(db.categories)?db.categories:[];db.medicalRecords=Array.isArray(db.medicalRecords)?db.medicalRecords:[];db.revisions=Array.isArray(db.revisions)?db.revisions:[];db.conflicts=Array.isArray(db.conflicts)?db.conflicts:[];db.fileIndex=Array.isArray(db.fileIndex)?db.fileIndex:[];db.schemaVersion=Number(db.schemaVersion||7)}
+function markSyncChanges(oldObj,newObj){const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations","medicalRecords"];for(const t of types){const a=Array.isArray(oldObj?.[t])?oldObj[t]:[],b=Array.isArray(newObj?.[t])?newObj[t]:[];const am=new Map(a.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)])),bm=new Map(b.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));for(const [id,val] of bm)if(am.get(id)!==val)syncMeta.dirty[t+":"+id]={type:t,id,deleted:false};for(const [id] of am)if(!bm.has(id))syncMeta.dirty[t+":"+id]={type:t,id,deleted:true}}localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta))}
+function saveDBCore(){normalizeDB();const old=JSON.parse(previousDbSnapshot||"{}");markSyncChanges(old,db);previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(currentProfile) audit("DATA_CHANGED","database","local",{deviceId:syncMeta.deviceId});if(localDbReady)localMainDB().then(async d=>{await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:new Date().toISOString()});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}).catch(console.warn);renderAll();updateSyncUI()}
+function saveDB(){
+  normalizeDB();
+  const before=previousDbSnapshot||"{}";
+  const oldObj=JSON.parse(before||"{}");
+  const stamp=new Date().toISOString();
+  const changed=[];
+  const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations","medicalRecords"];
+  for(const t of types){
+    const a=Array.isArray(oldObj[t])?oldObj[t]:[], b=Array.isArray(db[t])?db[t]:[];
+    const am=new Map(a.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));
+    const bm=new Map(b.filter(x=>x?.id).map(x=>[x.id,JSON.stringify(x)]));
+    for(const [id,val] of bm) if(am.get(id)!==val) changed.push({type:t,id,action:"UPSERT"});
+    for(const [id] of am) if(!bm.has(id)) changed.push({type:t,id,action:"DELETE"});
+  }
+  if(changed.length){
+    changed.forEach(c=>db.revisions.unshift({
+      id:uid("REV"),recordId:c.type+":"+c.id,entityType:c.type,entityId:c.id,
+      action:c.action,changedAt:stamp,changedBy:currentProfile?.user_id||null,
+      deviceId:syncMeta.deviceId,schemaVersion:db.schemaVersion
+    }));
+    db.revisions=db.revisions.slice(0,500);
+  }
+  saveDBCore();
+  renderV7DataControl();
+}
+
 db.dnaRelations=Array.isArray(db.dnaRelations)?db.dnaRelations:[];
 db.missingPersons=Array.isArray(db.missingPersons)?db.missingPersons:[];
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];
@@ -876,7 +1122,7 @@ function saveFieldPerson(){const first=fieldFirst.value.trim(),last=fieldLast.va
 
 function updateAge(){document.getElementById("personAge").value=calcAge(document.getElementById("personBirthDate").value)||"—"}
 function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function showPage(id,btn){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");renderAll()}
+function showPage(id,btn){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");renderAll();renderV7DataControl()}
 function closeModal(id){document.getElementById(id).classList.remove("show")}
 function badge(status){let c=status==="ახსნილი"?"green":status==="ვერ აიხსნა"?"red":status==="მიმდინარეობს კვლევა"?"blue":status==="არასაკმარისი ინფორმაცია"?"gray":"yellow";return `<span class="badge ${c}">${esc(status)}</span>`}
 
@@ -1070,7 +1316,32 @@ function checkMedicalPerson(){const id=document.getElementById("medicalIdSearch"
 function openMedicalModal(personId=""){["medicalEditPersonId","medicalTargetId","medicalDoctorName","medicalDoctorProfession","medicalDoctorContact","medicalDate","medicalDocNo","medicalEnteredBy","medicalConclusion","medicalSourceNote"].forEach(id=>document.getElementById(id).value="");medicalBloodGroup.value="უცნობია";medicalHallucinations.value="არ არის მონაცემი";medicalHealthStatus.value="არ არის მონაცემი";medicalPsychiatricStatus.value="არ არის მონაცემი";medicalFileInput.value="";medicalFileInfo.textContent="ფაილი არ არის არჩეული";document.getElementById("medicalFileLink").innerHTML="";document.getElementById("medicalTargetNotice").style.display="none";const now=new Date();medicalEnteredAt.value=new Date(now-now.getTimezoneOffset()*60000).toISOString().slice(0,16);if(personId){const p=db.persons.find(x=>x.id===personId);if(!p)return;const m=p.medical||{};medicalEditPersonId.value=p.id;medicalTargetId.value=p.personalId||"";medicalDoctorName.value=m.doctorName||"";medicalDoctorProfession.value=m.doctorProfession||"";medicalDoctorContact.value=m.doctorContact||"";medicalBloodGroup.value=m.bloodGroup||p.bloodGroup||"უცნობია";medicalHallucinations.value=m.hallucinations||"არ არის მონაცემი";medicalHealthStatus.value=m.healthStatus||"არ არის მონაცემი";medicalPsychiatricStatus.value=m.psychiatricStatus||"არ არის მონაცემი";medicalDate.value=m.medicalDate||"";medicalDocNo.value=m.docNo||"";medicalEnteredBy.value=m.enteredBy||"";medicalEnteredAt.value=m.enteredAt?new Date(new Date(m.enteredAt).getTime()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):medicalEnteredAt.value;medicalConclusion.value=m.conclusion||"";medicalSourceNote.value=m.sourceNote||"";if(m.fileData){document.getElementById("medicalFileLink").innerHTML=`📎 <a href="${m.fileData}" download="${esc(m.fileName||'medical-document')}">${esc(m.fileName||"ატვირთული დოკუმენტი")}</a>`;medicalFileInfo.textContent="არსებული ფაილი შენახულია"}}document.getElementById("medicalModal").classList.add("show");checkMedicalModalPerson()}
 function checkMedicalModalPerson(){const id=document.getElementById("medicalTargetId").value.trim();const box=document.getElementById("medicalTargetNotice");if(!id){box.style.display="none";return}const p=db.persons.find(x=>x.personalId===id);box.style.display="block";box.className=p?"successNote":"dangerNote";box.innerHTML=p?`✅ დაკავშირებულია: <b>${esc(personName(p.id))}</b>`:`❌ Personal ID ბაზაში ვერ მოიძებნა. სამედიცინო მონაცემების შენახვა შეუძლებელია.`;if(p)medicalEditPersonId.value=p.id;else medicalEditPersonId.value=""}
 function handleMedicalFile(e){const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){alert("V1-ში ერთი სამედიცინო ფაილის მაქსიმალური ზომა არის 2 MB. დიდი დოკუმენტებისთვის საჭიროა Supabase Storage.");e.target.value="";return}const r=new FileReader();r.onload=()=>{window._medicalFileData=r.result;window._medicalFileName=f.name;document.getElementById("medicalFileInfo").textContent=`არჩეულია: ${f.name} (${Math.round(f.size/1024)} KB)`};r.onerror=()=>alert("ფაილის წაკითხვა ვერ მოხერხდა.");r.readAsDataURL(f)}
-function saveMedicalData(){const personalId=medicalTargetId.value.trim();const p=db.persons.find(x=>x.personalId===personalId);if(!p){alert("ამ Personal ID-ით პიროვნება ვერ მოიძებნა. ჯერ დაამატეთ პიროვნება.");return}const old=p.medical||{};const m={...old,doctorName:medicalDoctorName.value.trim(),doctorProfession:medicalDoctorProfession.value.trim(),doctorContact:medicalDoctorContact.value.trim(),bloodGroup:medicalBloodGroup.value,hallucinations:medicalHallucinations.value,healthStatus:medicalHealthStatus.value,psychiatricStatus:medicalPsychiatricStatus.value,medicalDate:medicalDate.value,docNo:medicalDocNo.value.trim(),enteredBy:medicalEnteredBy.value.trim(),enteredAt:medicalEnteredAt.value?new Date(medicalEnteredAt.value).toISOString():new Date().toISOString(),conclusion:medicalConclusion.value,sourceNote:medicalSourceNote.value};if(window._medicalFileData){m.fileData=window._medicalFileData;m.fileName=window._medicalFileName;m.fileUploadedAt=new Date().toISOString();window._medicalFileData="";window._medicalFileName=""}p.medical=m;if(m.bloodGroup&&m.bloodGroup!=="უცნობია")p.bloodGroup=m.bloodGroup;saveDB();closeModal("medicalModal");alert("სამედიცინო მონაცემები Personal ID-ს დაუკავშირდა.")}
+function saveMedicalDataCore(){const personalId=medicalTargetId.value.trim();const p=db.persons.find(x=>x.personalId===personalId);if(!p){alert("ამ Personal ID-ით პიროვნება ვერ მოიძებნა. ჯერ დაამატეთ პიროვნება.");return}const old=p.medical||{};const m={...old,doctorName:medicalDoctorName.value.trim(),doctorProfession:medicalDoctorProfession.value.trim(),doctorContact:medicalDoctorContact.value.trim(),bloodGroup:medicalBloodGroup.value,hallucinations:medicalHallucinations.value,healthStatus:medicalHealthStatus.value,psychiatricStatus:medicalPsychiatricStatus.value,medicalDate:medicalDate.value,docNo:medicalDocNo.value.trim(),enteredBy:medicalEnteredBy.value.trim(),enteredAt:medicalEnteredAt.value?new Date(medicalEnteredAt.value).toISOString():new Date().toISOString(),conclusion:medicalConclusion.value,sourceNote:medicalSourceNote.value};if(window._medicalFileData){m.fileData=window._medicalFileData;m.fileName=window._medicalFileName;m.fileUploadedAt=new Date().toISOString();window._medicalFileData="";window._medicalFileName=""}p.medical=m;if(m.bloodGroup&&m.bloodGroup!=="უცნობია")p.bloodGroup=m.bloodGroup;saveDB();closeModal("medicalModal");alert("სამედიცინო მონაცემები Personal ID-ს დაუკავშირდა.")}
+function saveMedicalData(){
+  const personalId=medicalTargetId.value.trim();
+  const p=db.persons.find(x=>x.personalId===personalId);
+  if(!p){alert("ამ Personal ID-ით პიროვნება ვერ მოიძებნა. ჯერ დაამატეთ პიროვნება.");return}
+  const enteredAt=medicalEnteredAt.value?new Date(medicalEnteredAt.value).toISOString():new Date().toISOString();
+  const record={
+    id:uid("MEDR"),personId:p.id,personalId:p.personalId||"",
+    doctorName:medicalDoctorName.value.trim(),doctorProfession:medicalDoctorProfession.value.trim(),
+    doctorContact:medicalDoctorContact.value.trim(),bloodGroup:medicalBloodGroup.value,
+    hallucinations:medicalHallucinations.value,healthStatus:medicalHealthStatus.value,
+    psychiatricStatus:medicalPsychiatricStatus.value,medicalDate:medicalDate.value,
+    docNo:medicalDocNo.value.trim(),enteredBy:medicalEnteredBy.value.trim(),
+    enteredAt,conclusion:medicalConclusion.value,sourceNote:medicalSourceNote.value,
+    fileData:"",fileName:"",fileUploadedAt:"",source:"manual"
+  };
+  if(window._medicalFileData){record.fileData=window._medicalFileData;record.fileName=window._medicalFileName;record.fileUploadedAt=new Date().toISOString();window._medicalFileData="";window._medicalFileName=""}
+  db.medicalRecords.push(record);
+  p.medical={...record};
+  p.medical.id=undefined;
+  if(record.bloodGroup&&record.bloodGroup!=="უცნობია")p.bloodGroup=record.bloodGroup;
+  saveDB();
+  closeModal("medicalModal");
+  alert("სამედიცინო მონაცემები დაემატა ახალ history ჩანაწერად და ბოლო ჩანაწერი პიროვნებასაც მიება.");
+}
+
 
 function openDnaModal(){fillDnaPersons();["dnaDate","dnaLab","dnaResult","dnaNotes"].forEach(id=>document.getElementById(id).value="");dnaRelation.value="მშობელი / შვილი";dnaStatus.value="დადასტურებულია";dnaA.value="";dnaB.value="";document.getElementById("dnaModal").classList.add("show")}
 function fillDnaPersons(){const html=db.persons.map(p=>`<option value="${esc(p.id)}">${esc(p.first)} ${esc(p.last)} — ${esc(p.personalId||"")}</option>`).join("");dnaA.innerHTML='<option value="">— აირჩიეთ —</option>'+html;dnaB.innerHTML='<option value="">— აირჩიეთ —</option>'+html}
@@ -1255,8 +1526,9 @@ function renderEvidence(){
  const arr=db.evidence.filter(e=>JSON.stringify(e).toLowerCase().includes(q));
  document.getElementById("evidenceBody").innerHTML=arr.length?arr.map(e=>{const c=db.cases.find(x=>x.id===e.caseId);return `<tr><td><b>${esc(e.name)}</b></td><td>${esc(e.type)}</td><td>${c?esc(c.title):"—"}</td><td>${esc(e.description)}<br><span class="small">${esc(e.file)}</span></td><td><button class="btn danger" onclick="deleteEvidence('${e.id}')">წაშლა</button></td></tr>`}).join(""):"<tr><td colspan='5' class='empty'>მასალა ვერ მოიძებნა</td></tr>";
 }
-function openEvidenceModal(){["evidenceName","evidenceFile","evidenceDescription"].forEach(x=>document.getElementById(x).value="");fillSelects();evidenceCase.value="";document.getElementById("evidenceModal").classList.add("show")}
-function saveEvidence(){if(!evidenceName.value.trim()){alert("მასალის სახელი აუცილებელია.");return}db.evidence.push({id:uid("EVD"),name:evidenceName.value.trim(),type:evidenceType.value,caseId:evidenceCase.value,file:evidenceFile.value,description:evidenceDescription.value});saveDB();closeModal("evidenceModal")}
+function openEvidenceModal(){["evidenceName","evidenceFile","evidenceDescription"].forEach(x=>document.getElementById(x).value="");const fi=document.getElementById("evidenceFileInput");if(fi)fi.value="";fillSelects();evidenceCase.value="";document.getElementById("evidenceModal").classList.add("show")}
+function previewV7EvidenceFile(e){const f=e.target.files?.[0];if(f)document.getElementById("evidenceFile").value=f.name}
+async function saveEvidence(){if(!evidenceName.value.trim()){alert("მასალის სახელი აუცილებელია.");return}const f=document.getElementById("evidenceFileInput")?.files?.[0];let storage={};if(f){try{storage=await v7UploadFile(f,"evidence")}catch(e){if(getV7StorageMode()==="cloud"){alert("Supabase Storage-ზე ატვირთვა ვერ მოხერხდა: "+e.message);return}}}db.evidence.push({id:uid("EVD"),name:evidenceName.value.trim(),type:evidenceType.value,caseId:evidenceCase.value,file:f?.name||evidenceFile.value,description:evidenceDescription.value,storagePath:storage.path||"",storageUrl:storage.url||"",mimeType:f?.type||"",fileSize:f?.size||0,sha256:storage.sha256||"",uploadedAt:f?new Date().toISOString():""});saveDB();closeModal("evidenceModal")}
 function deleteEvidence(id){if(confirm("წავშალოთ მასალა?")){db.evidence=db.evidence.filter(x=>x.id!==id);saveDB()}}
 
 async function generateReport(){const id=reportCase.value;if(!id){reportOutput.innerHTML="<div class='empty'>აირჩიეთ შემთხვევა.</div>";return}const c=db.cases.find(x=>x.id===id);reportOutput.innerHTML=caseHTML(c,db.evidence.filter(e=>e.caseId===id));await renderCaseMediaInto("caseReportMedia",c.mediaIds||[])}
@@ -1369,6 +1641,162 @@ function importData(ev){const file=ev.target.files[0];if(!file)return;const r=ne
 db.familyRelations=Array.isArray(db.familyRelations)?db.familyRelations:[];db.missingPersons.forEach(m=>{m.registryType=m.registryType||"დაკარგული პირი";m.policeCaseNo=m.policeCaseNo||"";m.policeAuthority=m.policeAuthority||"";m.dnaRef=m.dnaRef||"";m.fingerprintRef=m.fingerprintRef||""});db.persons.forEach(p=>{if(!p.medical)p.medical={};if(!Array.isArray(p.phones))p.phones=p.contact?[p.contact]:[]});saveDB();alert("მონაცემები წარმატებით აღდგა.");}catch(e){alert("არასწორი ან დაზიანებული JSON ფაილია.");}};r.readAsText(file)}
 function clearAll(){if(confirm("ეს წაშლის ყველა მონაცემს ამ ბრაუზერიდან. გაგრძელდეს?")){db={cases:[],persons:[],phenomena:[],evidence:[],categories:[],dnaRelations:[],missingPersons:[],familyRelations:[]};saveDB()}}
 
+function migrateToV7Silently(){
+  normalizeDB();
+  const existing=new Set(db.medicalRecords.map(m=>m.personId));
+  let changed=false;
+  db.persons.forEach(p=>{
+    if(p.medical&&Object.keys(p.medical).length&&!existing.has(p.id)){
+      db.medicalRecords.push({id:uid("MEDR"),personId:p.id,personalId:p.personalId||"",...JSON.parse(JSON.stringify(p.medical)),source:"V6 automatic migration",migratedAt:new Date().toISOString()});
+      changed=true;
+    }
+  });
+  db.schemaVersion=7;
+  if(changed){
+    previousDbSnapshot=JSON.stringify(db);
+    localStorage.setItem(KEY,JSON.stringify(db));
+  }
+}
+function getV7StorageSettings(){
+  const s=JSON.parse(localStorage.getItem("ufology_v7_storage")||"null");
+  return {bucket:s?.bucket||"ufology-media",mode:s?.mode||"auto"};
+}
+function getV7StorageMode(){return getV7StorageSettings().mode}
+function saveV7StorageSettings(){
+  const bucket=(document.getElementById("v7StorageBucket")?.value||"ufology-media").trim()||"ufology-media";
+  const mode=document.getElementById("v7StorageMode")?.value||"auto";
+  localStorage.setItem("ufology_v7_storage",JSON.stringify({bucket,mode}));
+  setV7StorageStatus("Storage პარამეტრები შენახულია.","ok");
+}
+function setV7StorageStatus(msg,kind=""){
+  const el=document.getElementById("v7StorageStatus");if(!el)return;
+  el.textContent=msg;el.className=kind==="ok"?"successNote":kind==="err"?"dangerNote":"notice";
+}
+async function sha256File(file){
+  const buf=await file.arrayBuffer();
+  const hash=await crypto.subtle.digest("SHA-256",buf);
+  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function v7UploadFile(file,folder="files"){
+  const cfg=getSyncSettings(), mode=getV7StorageMode();
+  const sha=await sha256File(file);
+  if(mode==="local") return {path:"",url:"",sha256:sha};
+  if(!supabaseClient) throw new Error("Supabase client არ არის ჩატვირთული.");
+  const {data:sessionData}=await supabaseClient.auth.getSession();
+  if(!sessionData?.session) throw new Error("Supabase-ში შესვლა საჭიროა Storage ატვირთვისთვის.");
+  if(!cfg.url||!cfg.key) throw new Error("Supabase URL/Key არ არის კონფიგურირებული.");
+  const bucket=getV7StorageSettings().bucket;
+  const safe=file.name.replace(/[^\w.\-ა-ჰ]+/g,"_");
+  const path=`${folder}/${currentProfile?.user_id||"user"}/${Date.now()}-${sha.slice(0,12)}-${safe}`;
+  const {error}=await supabaseClient.storage.from(bucket).upload(path,file,{upsert:false,contentType:file.type||"application/octet-stream"});
+  if(error) throw error;
+  const {data}=supabaseClient.storage.from(bucket).getPublicUrl(path);
+  return {path,url:data?.publicUrl||"",sha256:sha};
+}
+async function testV7Storage(){
+  try{
+    const s=getV7StorageSettings();
+    if(s.mode==="local"){setV7StorageStatus("ℹ️ Storage რეჟიმი არის Local — ღრუბელში ტესტი არ სრულდება.");return}
+    if(!supabaseClient)throw new Error("Supabase client არ არის ჩატვირთული.");
+    const {data,error}=await supabaseClient.storage.from(s.bucket).list("",{limit:1});
+    if(error)throw error;
+    setV7StorageStatus("✅ Supabase Storage კავშირი მუშაობს. Bucket: "+s.bucket,"ok");
+  }catch(e){setV7StorageStatus("❌ Storage ტესტი ვერ შესრულდა: "+e.message,"err")}
+}
+function validateV7Integrity(){
+  normalizeDB();
+  const errors=[],warnings=[];
+  const types=["cases","persons","phenomena","evidence","dnaRelations","missingPersons","familyRelations","medicalRecords"];
+  const ids=new Map();
+  for(const t of types){
+    for(const x of db[t]){
+      if(!x?.id){errors.push(`${t}: ID აკლია`);continue}
+      const key=t+":"+x.id;
+      if(ids.has(key))errors.push(`დუბლიკატი ID: ${key}`);
+      ids.set(key,true);
+    }
+  }
+  const personIds=new Set(db.persons.map(x=>x.id));
+  const caseIds=new Set(db.cases.map(x=>x.id));
+  for(const c of db.cases) for(const p of (c.personIds||[])) if(!personIds.has(p)) errors.push(`case ${c.id}: გატეხილი person link ${p}`);
+  for(const p of db.persons) for(const c of (p.caseIds||[])) if(!caseIds.has(c)) errors.push(`person ${p.id}: გატეხილი case link ${c}`);
+  for(const r of db.dnaRelations) if(!personIds.has(r.personA)||!personIds.has(r.personB)) errors.push(`DNA ${r.id}: გატეხილი person link`);
+  for(const r of db.familyRelations) if(!personIds.has(r.personA)||!personIds.has(r.personB)) errors.push(`Family ${r.id}: გატეხილი person link`);
+  for(const m of db.medicalRecords) if(!personIds.has(m.personId)) errors.push(`Medical ${m.id}: გატეხილი person link`);
+  for(const e of db.evidence) if(e.caseId&&!caseIds.has(e.caseId)) warnings.push(`Evidence ${e.id}: case არ მოიძებნა ${e.caseId}`);
+  for(const f of db.fileIndex) if(f.storagePath&&!f.storageUrl&&getV7StorageMode()==="cloud") warnings.push(`File ${f.id}: Storage URL არ არის მითითებული`);
+  return {errors,warnings};
+}
+function runIntegrityCheck(){
+  const r=validateV7Integrity();
+  const out=document.getElementById("v7IntegrityOutput");
+  if(!out)return;
+  document.getElementById("v7IntegrityCount").textContent=r.errors.length;
+  out.className=r.errors.length?"dangerNote":"successNote";
+  out.innerHTML=(r.errors.length?`<b>❌ Errors: ${r.errors.length}</b><ul>${r.errors.slice(0,100).map(esc).map(x=>`<li>${x}</li>`).join("")}</ul>`:`<b>✅ კრიტიკული შეცდომა არ მოიძებნა.</b>`)
+    +(r.warnings.length?`<hr><b>⚠️ Warnings: ${r.warnings.length}</b><ul>${r.warnings.slice(0,100).map(esc).map(x=>`<li>${x}</li>`).join("")}</ul>`:"");
+}
+function renderV7DataControl(){
+  normalizeDB();
+  const sc=document.getElementById("v7SchemaVersion"),rc=document.getElementById("v7RevisionCount"),cc=document.getElementById("v7ConflictCount");
+  if(sc)sc.textContent=db.schemaVersion;
+  if(rc)rc.textContent=db.revisions.length;
+  if(cc)cc.textContent=db.conflicts.length;
+  const s=getV7StorageSettings();
+  const b=document.getElementById("v7StorageBucket"),m=document.getElementById("v7StorageMode");
+  if(b)b.value=s.bucket;if(m)m.value=s.mode;
+  const co=document.getElementById("v7ConflictOutput");
+  if(co)co.innerHTML=db.conflicts.length?db.conflicts.slice(0,100).map(c=>`<div class="v7Conflict"><b>${esc(c.recordId)}</b><br><span class="small">${esc(c.detectedAt||"")} — ${esc(c.reason||"კონფლიქტი")}</span><div style="margin-top:8px">${esc(JSON.stringify(c.localRecord||{}))}</div><div class="actions" style="margin-top:8px"><button class="btn ok" onclick="resolveV7Conflict('${c.id}','local')">დატოვე Local</button><button class="btn" onclick="resolveV7Conflict('${c.id}','remote')">მიიღე Remote</button></div></div>`).join(""):"<div class='empty'>კონფლიქტები არ არის.</div>";
+  const ro=document.getElementById("v7RevisionOutput");
+  if(ro)ro.innerHTML=db.revisions.length?db.revisions.slice(0,150).map(r=>`<div class="v7Revision"><b>${esc(r.recordId)}</b> — ${esc(r.action)}<br><span class="small">${esc(r.changedAt||"")} • ${esc(r.deviceId||"")} • ${esc(r.changedBy||"local")}</span></div>`).join(""):"<div class='empty'>Revision-ები ჯერ არ არის.</div>";
+}
+function resolveV7Conflict(id,choice){
+  const c=db.conflicts.find(x=>x.id===id);if(!c)return;
+  const [type,rid]=String(c.recordId).split(":");
+  const arr=db[type];if(!Array.isArray(arr))return;
+  const idx=arr.findIndex(x=>x.id===rid);
+  if(choice==="remote"){
+    if(c.remoteDeleted){if(idx>=0)arr.splice(idx,1)}else if(c.remoteRecord){if(idx>=0)arr[idx]=c.remoteRecord;else arr.push(c.remoteRecord)}
+  }
+  db.conflicts=db.conflicts.filter(x=>x.id!==id);
+  saveDB();
+  audit("CONFLICT_RESOLVED",type,rid,{choice});
+  renderV7DataControl();
+}
+function migrateToV7(){
+  normalizeDB();
+  let created=0;
+  const byPerson=new Map(db.medicalRecords.map(m=>[m.personId,m]));
+  db.persons.forEach(p=>{
+    if(p.medical && Object.keys(p.medical).length && !byPerson.has(p.id)){
+      db.medicalRecords.push({id:uid("MEDR"),personId:p.id,...JSON.parse(JSON.stringify(p.medical)),source:"V6 migration",migratedAt:new Date().toISOString()});
+      created++;
+    }
+  });
+  db.schemaVersion=7;
+  saveDB();
+  runIntegrityCheck();
+  alert(`V7 მიგრაცია დასრულდა.\n\nახალი medical_records: ${created}\nSchema: ${db.schemaVersion}`);
+}
+function exportV7Archive(){
+  normalizeDB();
+  const archive={
+    format:"UFOLOGY_V7_ARCHIVE",
+    schema_version:7,
+    created_at:new Date().toISOString(),
+    device_id:syncMeta.deviceId,
+    created_by:currentProfile?{user_id:currentProfile.user_id,email:currentProfile.email,full_name:currentProfile.full_name}:null,
+    counts:{
+      cases:db.cases.length,persons:db.persons.length,phenomena:db.phenomena.length,evidence:db.evidence.length,
+      dnaRelations:db.dnaRelations.length,missingPersons:db.missingPersons.length,familyRelations:db.familyRelations.length,
+      medicalRecords:db.medicalRecords.length,revisions:db.revisions.length,conflicts:db.conflicts.length
+    },
+    data:JSON.parse(JSON.stringify(db))
+  };
+  downloadBlobFile("UFOLOGY_V7_Archive_"+new Date().toISOString().replace(/[:.]/g,"-").slice(0,19)+".json",archive);
+  audit("V7_ARCHIVE_EXPORT","archive","local",{schemaVersion:7});
+}
+
 function getSyncSettings(){
   const saved=JSON.parse(localStorage.getItem(SYNC_KEY)||'null');
   return {
@@ -1376,16 +1804,17 @@ function getSyncSettings(){
     key:saved?.key||SUPABASE_API_KEY
   }
 }
-function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI()}
+function saveSyncSettings(){const url=document.getElementById("syncUrl").value.trim().replace(/\/$/,"");const key=document.getElementById("syncKey").value.trim();localStorage.setItem(SYNC_KEY,JSON.stringify({url,key}));setSyncStatus("პარამეტრები შენახულია.","ok");updateSyncUI();renderV7DataControl()}
 function setSyncStatus(msg,kind=""){const el=document.getElementById("syncStatus");if(!el)return;el.textContent=msg;el.className=kind==="ok"?"notice":kind==="err"?"dangerNote":"notice"}
 function syncLog(msg){const el=document.getElementById("syncLog");if(!el)return;const line=`<div>🕐 ${esc(new Date().toLocaleString("ka-GE"))} — ${esc(msg)}</div>`;el.innerHTML=line+el.innerHTML}
 function updateSyncUI(){const st=document.getElementById("localDbStatus");if(st)st.innerHTML=localDbReady?"💾 <b>ლოკალური IndexedDB ბაზა აქტიურია.</b> მონაცემები ინახება ამ კომპიუტერში და ბრაუზერის დახურვა მათ არ შლის.":"⚠️ IndexedDB ვერ ჩაირთო; ამ ეტაპზე გამოიყენება ბრაუზერის LocalStorage.";const cfg=getSyncSettings();if(document.getElementById("syncUrl")){document.getElementById("syncUrl").value=cfg.url||"";document.getElementById("syncKey").value=cfg.key||"";document.getElementById("lastSync").value=syncMeta.lastSyncAt?new Date(syncMeta.lastSyncAt).toLocaleString("ka-GE"):"ჯერ არა";document.getElementById("deviceId").value=syncMeta.deviceId;const count=Object.keys(syncMeta.dirty||{}).length;setSyncStatus(cfg.url&&cfg.key?`კონფიგურირებულია. ელოდება სინქრონიზაციას: ${count} ცვლილება.`:"ონლაინ სინქრონიზაცია ჯერ არ არის კონფიგურირებული.")}}
 async function supabaseRequest(path,opts={}){const cfg=getSyncSettings();if(!cfg.url||!cfg.key)throw new Error("Supabase URL და Anon Key მიუთითეთ.");const {data}=await supabaseClient.auth.getSession();const token=data?.session?.access_token;if(!token)throw new Error("სინქრონიზაციისთვის საჭიროა ადმინისტრატორის შესვლა.");const r=await fetch(cfg.url+path,{...opts,headers:{apikey:cfg.key,Authorization:"Bearer "+token,"Content-Type":"application/json",Prefer:"return=representation",...(opts.headers||{})}});const text=await r.text();let data2=null;try{data2=text?JSON.parse(text):null}catch{}if(!r.ok)throw new Error(data2?.message||data2?.error||text||("HTTP "+r.status));return data2}
 async function testSyncConnection(){try{saveSyncSettings();await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id&limit=1');setSyncStatus("✅ Supabase კავშირი მუშაობს.","ok");syncLog("Supabase კავშირი წარმატებით შემოწმდა.")}catch(e){setSyncStatus("❌ კავშირის შეცდომა: "+e.message,"err");syncLog("კავშირის შეცდომა: "+e.message)}}
 function buildDirtyPayload(){const out=[];for(const k of Object.keys(syncMeta.dirty||{})){const d=syncMeta.dirty[k];const arr=db[d.type]||[];const item=arr.find(x=>x.id===d.id);out.push({record_id:d.type+":"+d.id,entity_type:d.type,entity_id:d.id,device_id:syncMeta.deviceId,record_data:item||null,deleted:!!d.deleted,client_updated_at:new Date().toISOString()})}return out}
-async function syncNow(){const cfg=getSyncSettings();if(!cfg.url||!cfg.key){alert("ჯერ შეიყვანეთ Supabase Project URL და Anon Key სინქრონიზაციის განყოფილებაში.");showPage("sync",document.querySelectorAll("nav button")[12]);return}setSyncStatus("⏳ სინქრონიზაცია მიმდინარეობს...");try{const payload=buildDirtyPayload();if(payload.length){await supabaseRequest('/rest/v1/ufology_sync_records?on_conflict=record_id',{method:'POST',body:JSON.stringify(payload),headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}const since=syncMeta.lastSyncAt||"1970-01-01T00:00:00.000Z";const incoming=await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id,entity_type,entity_id,device_id,record_data,deleted,client_updated_at,updated_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc');let applied=0;for(const r of (incoming||[])){if(r.device_id===syncMeta.deviceId)continue;const arr=db[r.entity_type];if(!Array.isArray(arr))continue;const idx=arr.findIndex(x=>x.id===r.entity_id);if(r.deleted){if(idx>=0)arr.splice(idx,1)}else if(r.record_data){if(idx>=0)arr[idx]=r.record_data;else arr.push(r.record_data)}applied++}syncMeta.dirty={};syncMeta.lastSyncAt=new Date().toISOString();localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady){const d=await localMainDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:syncMeta.lastSyncAt});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}renderAll();updateSyncUI();setSyncStatus(`✅ დასრულდა. გაიგზავნა ${payload.length} ცვლილება; მიღებულია/დამუშავდა ${applied} ცვლილება.` ,"ok");syncLog(`სინქრონიზაცია: ატვირთული ${payload.length}, მიღებული ${applied}`);await audit("SYNC","sync","local",{uploaded:payload.length,received:applied})}catch(e){setSyncStatus("❌ სინქრონიზაცია ვერ დასრულდა: "+e.message,"err");syncLog("სინქრონიზაციის შეცდომა: "+e.message)}}
+async function syncNow(){const cfg=getSyncSettings();if(!cfg.url||!cfg.key){alert("ჯერ შეიყვანეთ Supabase Project URL და Anon Key სინქრონიზაციის განყოფილებაში.");showPage("sync",document.querySelector('nav button[onclick*="sync"]'));return}setSyncStatus("⏳ სინქრონიზაცია მიმდინარეობს...");try{const payload=buildDirtyPayload();if(payload.length){await supabaseRequest('/rest/v1/ufology_sync_records?on_conflict=record_id',{method:'POST',body:JSON.stringify(payload),headers:{Prefer:'resolution=merge-duplicates,return=minimal'}})}const since=syncMeta.lastSyncAt||"1970-01-01T00:00:00.000Z";const incoming=await supabaseRequest('/rest/v1/ufology_sync_records?select=record_id,entity_type,entity_id,device_id,record_data,deleted,client_updated_at,updated_at&updated_at=gt.'+encodeURIComponent(since)+'&order=updated_at.asc');let applied=0;for(const r of (incoming||[])){if(r.device_id===syncMeta.deviceId)continue;const arr=db[r.entity_type];if(!Array.isArray(arr))continue;const idx=arr.findIndex(x=>x.id===r.entity_id);if(r.deleted){if(idx>=0)arr.splice(idx,1)}else if(r.record_data){if(idx>=0)arr[idx]=r.record_data;else arr.push(r.record_data)}applied++}syncMeta.dirty={};syncMeta.lastSyncAt=new Date().toISOString();localStorage.setItem(SYNC_META_KEY,JSON.stringify(syncMeta));previousDbSnapshot=JSON.stringify(db);localStorage.setItem(KEY,JSON.stringify(db));if(localDbReady){const d=await localMainDB();await new Promise((res,rej)=>{const tx=d.transaction(LOCAL_DB_STORE,"readwrite");tx.objectStore(LOCAL_DB_STORE).put({id:"main",data:db,updatedAt:syncMeta.lastSyncAt});tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});d.close()}renderAll();updateSyncUI();setSyncStatus(`✅ დასრულდა. გაიგზავნა ${payload.length} ცვლილება; მიღებულია/დამუშავდა ${applied} ცვლილება.` ,"ok");syncLog(`სინქრონიზაცია: ატვირთული ${payload.length}, მიღებული ${applied}`);await audit("SYNC","sync","local",{uploaded:payload.length,received:applied})}catch(e){setSyncStatus("❌ სინქრონიზაცია ვერ დასრულდა: "+e.message,"err");syncLog("სინქრონიზაციის შეცდომა: "+e.message)}}
 
 requireAdminLogin();
+renderV7DataControl();
 </script>
 </body>
 </html>
